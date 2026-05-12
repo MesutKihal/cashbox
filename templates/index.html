@@ -1,0 +1,1184 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashboxPro | نظام البيع والمخزون</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        [x-cloak] { display: none !important; }
+        
+        body {
+            background-color: #f0f2f5;
+        }
+        
+        body.dark-mode {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        
+        .text-white-50 {
+            color: #ffffff;
+        }
+        
+        .modern-card {
+            background: white;
+            border-radius: 28px;
+            border: none;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode .modern-card {
+            background: #1e293b;
+        }
+        
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-nav {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem 0.75rem;
+            height: calc(100vh - 2rem);
+            position: sticky;
+            top: 1rem;
+        }
+        
+        body.dark-mode .sidebar-nav {
+            background: #1e293b;
+        }
+        
+        .nav-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 16px;
+            color: #64748b;
+            transition: all 0.2s;
+            cursor: pointer;
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-weight: 500;
+        }
+        
+        .nav-item-custom:hover {
+            background: #f1f5f9;
+            color: #3b82f6;
+        }
+        
+        .nav-item-custom.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 8px 16px -6px rgba(59,130,246,0.3);
+        }
+        
+        body.dark-mode .nav-item-custom:hover {
+            background: #334155;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #6876b3 0%, #190032 100%);
+            border-radius: 24px;
+            padding: 1.5rem;
+            color: white;
+        }
+        
+        .stat-card-success {
+            background: linear-gradient(135deg, #59bdb5 0%, #0b612c 100%);
+        }
+        
+        .stat-card-warning {
+            background: linear-gradient(135deg, #704b74 0%, #9c3140 100%);
+        }
+        
+        .stat-card-info {
+            background: linear-gradient(135deg, #186eba 0%, #7fb7ba 100%);
+        }
+        
+        .product-card {
+            cursor: pointer;
+            transition: all 0.25s;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
+        
+        body.dark-mode .product-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -12px rgba(0,0,0,0.15);
+        }
+        
+        .custom-table {
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .custom-table thead th {
+            background: #f8fafc;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+        }
+        
+        body.dark-mode .custom-table thead th {
+            background: #334155;
+            color: #e2e8f0;
+        }
+        
+        .upload-area {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #f1f5f9;
+        }
+        
+        body.dark-mode .upload-area {
+            background: #334155;
+            border-color: #64748b;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* RTL specific adjustments */
+        .text-start {
+            text-align: right !important;
+        }
+        
+        .text-end {
+            text-align: left !important;
+        }
+        
+        .me-2 {
+            margin-left: 0.5rem !important;
+            margin-right: 0 !important;
+        }
+        
+        .ms-2 {
+            margin-right: 0.5rem !important;
+            margin-left: 0 !important;
+        }
+        
+        .input-group:not(.has-validation)>:not(:last-child):not(.dropdown-toggle):not(.dropdown-title) {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            border-top-right-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+        }
+        
+        .input-group>:not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+            margin-right: -1px;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-top-left-radius: 0.375rem;
+            border-bottom-left-radius: 0.375rem;
+        }
+    </style>
+</head>
+<body x-data="app()" x-init="init()" x-cloak>
+    <div :style="darkModeEnabled ? 'background: #0f172a; min-height: 100vh;' : 'background: #f0f2f5; min-height: 100vh;'">
+        <div class="container-fluid px-4 py-3">
+            <div class="row g-4">
+                <!-- Sidebar -->
+                <div class="col-lg-2 col-md-3">
+                    <div class="sidebar-nav">
+                        <div class="text-center mb-4">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 d-inline-block mb-2">
+                                <i class="fas fa-donate fa-2x text-primary"></i>
+                            </div>
+                            <h5 class="fw-bold mt-2 mb-0">Cashbox<span class="text-primary">Pro</span></h5>
+                            <small class="text-muted" x-text="storeName"></small>
+                        </div>
+                        <div class="nav flex-column gap-2">
+                            <button class="nav-item-custom" @click="currentPage = 'home'" :class="currentPage === 'home' ? 'active' : ''">
+                                <i class="fas fa-cash-register fa-lg" style="width: 24px;"></i><span>نقطة البيع</span>
+                            </button>
+                            <button class="nav-item-custom" @click="currentPage = 'sales'" :class="currentPage === 'sales' ? 'active' : ''">
+                                <i class="fas fa-chart-line fa-lg" style="width: 24px;"></i>
+                                <span>المبيعات</span>
+                            </button>
+                            <button class="nav-item-custom" @click="currentPage = 'inventory'" :class="currentPage === 'inventory' ? 'active' : ''">
+                                <i class="fas fa-boxes fa-lg" style="width: 24px;"></i><span>المخزون</span>
+                            </button>
+                            <button class="nav-item-custom" @click="currentPage = 'customers'" :class="currentPage === 'customers' ? 'active' : ''">
+                                <i class="fas fa-users fa-lg" style="width: 24px;"></i><span>الزبائن</span>
+                            </button>
+                            <button class="nav-item-custom" @click="currentPage = 'suppliers'" :class="currentPage === 'suppliers' ? 'active' : ''">
+                                <i class="fas fa-truck fa-lg" style="width: 24px;"></i><span>الموردين</span>
+                            </button>
+                            <button class="nav-item-custom" @click="currentPage = 'categories'" :class="currentPage === 'categories' ? 'active' : ''">
+                                <i class="fas fa-tags fa-lg" style="width: 24px;"></i><span>التصنيفات</span>
+                            </button>
+                            <button class="nav-item-custom" @click="currentPage = 'cashbox'" :class="currentPage === 'cashbox' ? 'active' : ''">
+                                <i class="fas fa-money-bill-wave fa-lg" style="width: 24px;"></i><span>الخزائن</span>
+                            </button>
+                            <button class="nav-item-custom" @click="currentPage = 'settings'" :class="currentPage === 'settings' ? 'active' : ''">
+                                <i class="fas fa-sliders-h fa-lg" style="width: 24px;"></i><span>الإعدادات</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-lg-10 col-md-9">
+                    <div x-show="isLoading" class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                    
+                    <div x-show="!isLoading">
+                        <!-- Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h3 class="fw-bold mb-1" x-text="getPageTitle()"></h3>
+                                <p class="text-muted mb-0">
+                                    <i class="far fa-calendar-alt me-1"></i>
+                                    <span x-text="new Date().toLocaleDateString({ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })"></span>
+                                </p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-secondary rounded-3" @click="toggleDarkMode()">
+                                    <i class="fas" :class="darkModeEnabled ? 'fa-sun' : 'fa-moon'"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- POS Page -->
+                        <div x-show="currentPage === 'home'">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="modern-card h-100">
+                                        <div class="card-body p-4">
+                                            <div class="stat-card mb-4 text-center">
+                                                <span class="h6 text-white-50">إجمالي السلة</span>
+                                                <h1 class="display-4 fw-bold mb-0" x-text="cartTotal.toFixed(2) + ' ' + currencySymbol">0.00</h1>
+                                            </div>
+                                            <div class="input-group mb-4">
+                                                <input type="text" class="form-control form-control-lg rounded-3" placeholder="مسح الباركود أو الكتابة..." 
+                                                    x-model="barcodeQuery" @input="handleBarcode()" autofocus>
+                                                <span class="input-group-text bg-primary text-white border-0 rounded-3">
+                                                    <i class="fas fa-barcode"></i>
+                                                </span>
+                                            </div>
+                                            <div class="overflow-auto-custom" style="max-height: 400px;">
+                                                <table class="table table-borderless align-middle">
+                                                    <thead class="border-bottom">
+                                                        <tr class="text-muted small">
+                                                            <th>المنتج</th>
+                                                            <th class="text-center">الكمية</th>
+                                                            <th class="text-end">الإجمالي</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <template x-for="(item, idx) in cart" :key="idx">
+                                                            <tr>
+                                                                <td class="fw-semibold" x-text="item.title"></td>
+                                                                <td class="text-center">
+                                                                    <div class="btn-group btn-group-sm">
+                                                                        <button class="btn btn-outline-secondary" @click="updateCartQty(item, -1)">-</button>
+                                                                        <span class="px-3 py-1" x-text="item.quantity"></span>
+                                                                        <button class="btn btn-outline-secondary" @click="updateCartQty(item, 1)">+</button>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="text-end fw-bold text-primary" x-text="(item.price * item.quantity).toFixed(2)"></td>
+                                                                <td class="text-end">
+                                                                    <button class="btn btn-sm text-danger" @click="removeFromCart(idx)">
+                                                                        <i class="fas fa-trash-alt"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        </template>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="row g-3 mt-3">
+                                                <div class="col-6"><button class="btn btn-outline-secondary w-100 py-2 rounded-3"  @click="printBill()"><i class="fas fa-print me-2"></i>طباعة</button></div>
+                                                <div class="col-6"><button class="btn btn-outline-danger w-100 py-2 rounded-3" @click="clearCart()"><i class="fas fa-trash-alt me-2"></i>تفريغ</button></div>
+                                                <div class="col-12"><button class="btn btn-success w-100 py-3 fw-bold rounded-3" @click="validateOrder()"><i class="fas fa-check-circle me-2"></i>تأكيد الطلب</button></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="modern-card h-100">
+                                        <div class="card-body p-4">
+                                            <div class="mb-4">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control border-end-0 rounded-3" placeholder="بحث عن منتج..." x-model="productSearchQuery" @input="filterProducts()">
+                                                    <span class="input-group-text bg-transparent border-start-0 rounded-3"><i class="fas fa-search text-muted"></i></span>
+                                                </div>
+                                            </div>
+                                            <div class="row g-3 overflow-auto-custom" style="max-height: 550px;">
+                                                <template x-for="prod in filteredProducts" :key="prod.id">
+                                                    <div class="col-md-6">
+                                                        <div class="product-card p-3 text-center" @click="addToCart(prod)">
+                                                            <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-block mb-2">
+                                                                <i class="fas fa-box-open fa-2x text-primary"></i>
+                                                            </div>
+                                                            <h6 class="fw-bold mb-1" x-text="prod.title"></h6>
+                                                            <small class="text-muted"><i class="fas fa-database"></i> <span x-text="prod.quantity"></span> في المخزون</small>
+                                                            <h5 class="text-primary fw-bold mt-2 mb-0" x-text="prod.price.toFixed(2) + ' ' + currencySymbol"></h5>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Sales Page -->
+                        <div x-show="currentPage === 'sales'">
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-3">
+                                    <div class="stat-card stat-card-info">
+                                        <i class="fas fa-chart-line fa-2x mb-2"></i>
+                                        <h6 class="text-white-50 mb-0">إجمالي المبيعات</h6>
+                                        <h2 class="fw-bold mb-0" x-text="totalSales.toFixed(2) + ' ' + currencySymbol">0.00</h2>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-card stat-card-success">
+                                        <i class="fas fa-exchange-alt fa-2x mb-2"></i>
+                                        <h6 class="text-white-50 mb-0">عدد المعاملات</h6>
+                                        <h2 class="fw-bold mb-0" x-text="salesList.length">0</h2>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-card stat-card-warning">
+                                        <i class="fas fa-boxes fa-2x mb-2"></i>
+                                        <h6 class="text-white-50 mb-0">المنتجات المباعة</h6>
+                                        <h2 class="fw-bold mb-0" x-text="totalItemsSold">0</h2>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-card">
+                                        <i class="fas fa-calendar-week fa-2x mb-2"></i>
+                                        <h6 class="text-white-50 mb-0">مبيعات اليوم</h6>
+                                        <h2 class="fw-bold mb-0" x-text="todaySales.toFixed(2) + ' ' + currencySymbol">0.00</h2>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modern-card">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                                        <h4 class="fw-bold mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>سجل المبيعات</h4>
+                                        <div class="d-flex gap-2">
+                                            <div class="input-group" style="width: 250px;">
+                                                <input type="text" class="form-control border-end-0 rounded-3" placeholder="بحث عن منتج..." x-model="salesSearch" @input="filterSales()">
+                                                <span class="input-group-text bg-transparent border-start-0 rounded-3"><i class="fas fa-search text-muted"></i></span>
+                                            </div>
+                                            <button class="btn btn-outline-primary" @click="exportSalesReport()">
+                                                <i class="fas fa-file-excel me-2"></i>تصدير
+                                            </button>
+                                            <button class="btn btn-outline-secondary" @click="loadSales()">
+                                                <i class="fas fa-sync-alt me-2"></i>تحديث
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive" style="max-height: 500px;">
+                                        <table class="table table-hover align-middle custom-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>المنتج</th>
+                                                    <th>الباركود</th>
+                                                    <th class="text-center">الكمية</th>
+                                                    <th class="text-end">السعر</th>
+                                                    <th class="text-end">الإجمالي</th>
+                                                    <th class="text-center">التاريخ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template x-for="(sale, idx) in filteredSales" :key="sale.id">
+                                                    <tr>
+                                                        <td x-text="idx + 1"></td>
+                                                        <td class="fw-semibold" x-text="sale.product_title || 'منتج محذوف'"></td>
+                                                        <td><code x-text="sale.product_barcode || '—'"></code></td>
+                                                        <td class="text-center"><span class="badge bg-primary" x-text="sale.quantity"></span></td>
+                                                        <td class="text-end" x-text="(sale.price || 0).toFixed(2) + ' ' + currencySymbol"></td>
+                                                        <td class="text-end fw-bold text-success" x-text="(sale.total || 0).toFixed(2) + ' ' + currencySymbol"></td>
+                                                        <td class="text-center"><small x-text="formatDate(sale.date)"></small></td>
+                                                    </tr>
+                                                </template>
+                                                <tr x-show="filteredSales.length === 0">
+                                                    <td colspan="7" class="text-center text-muted py-5">لا توجد مبيعات مسجلة</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inventory Page -->
+                        <div x-show="currentPage === 'inventory'">
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-3"><div class="stat-card stat-card-info"><i class="fas fa-cubes fa-2x mb-2"></i><h5 class="text-white-50 mb-0">إجمالي المنتجات</h5><h2 class="fw-bold mb-0" x-text="inventoryList.length"></h2></div></div>
+                                <div class="col-md-3"><div class="stat-card stat-card-warning"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><h5 class="text-white-50 mb-0">منتجات منخفضة</h5><h2 class="fw-bold mb-0" x-text="inventoryList.filter(p => p.quantity < 50).length"></h2></div></div>
+                                <div class="col-md-3"><div class="stat-card stat-card-success"><i class="fas fa-chart-line fa-2x mb-2"></i><h5 class="text-white-50 mb-0">قيمة المخزون</h5><h2 class="fw-bold mb-0" x-text="inventoryTotalValue.toFixed(0) + ' ' + currencySymbol"></h2></div></div>
+                                <div class="col-md-3"><div class="stat-card"><i class="fas fa-tags fa-2x mb-2"></i><h5 class="text-white-50 mb-0">التصنيفات</h5><h2 class="fw-bold mb-0" x-text="categoriesList.length"></h2></div></div>
+                            </div>
+                            <div class="modern-card mb-4">
+                                <div class="card-body p-4">
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-md-4"><div class="input-group"><input type="text" class="form-control border-end-0" placeholder="بحث..." x-model="invSearchQuery" @input="applyInventoryFilters()"><span class="input-group-text bg-transparent border-start-0"><i class="fas fa-search"></i></span></div></div>
+                                        <div class="col-md-3"><select class="form-select" x-model="invSortBy" @change="applyInventoryFilters()"><option value="">ترتيب: افتراضي</option><option value="price-asc">السعر: من الأقل للأعلى</option><option value="price-desc">السعر: من الأعلى للأقل</option><option value="stock-low">المخزون: من الأقل للأعلى</option></select></div>
+                                        <div class="col-md-3"><select class="form-select" x-model="invFilterType" @change="applyInventoryFilters()"><option value="">تصفية: الكل</option><option value="low-stock">مخزون منخفض (&lt;50)</option><option value="low-revenue">سعر منخفض (&lt;50)</option></select></div>
+                                        <div class="col-md-2"><button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addProductModal"><i class="fas fa-plus me-2"></i>إضافة</button></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modern-card">
+                                <div class="table-responsive" style="max-height: 500px;">
+                                    <table class="table table-hover align-middle mb-0 custom-table">
+                                        <thead>
+                                            <tr><th class="ps-4">المنتج</th><th>الباركود</th><th class="text-center">المخزون</th><th class="text-end">السعر</th><th class="text-center">إجراءات</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="prod in displayedInventory" :key="prod.id">
+                                                <tr>
+                                                    <td class="ps-4"><div class="fw-bold" x-text="prod.title"></div><small class="text-muted">الرقم: <span x-text="prod.barcode"></span></small></td>
+                                                    <td><code x-text="prod.barcode"></code></td>
+                                                    <td class="text-center"><span :class="prod.quantity < 50 ? 'badge bg-danger' : 'badge bg-success'" x-text="prod.quantity"></span></td>
+                                                    <td class="text-end fw-bold text-primary" x-text="prod.price.toFixed(2) + ' ' + currencySymbol"></td>
+                                                    <td class="text-center"><button class="btn btn-sm btn-outline-danger rounded-3" @click="deleteProduct(prod.id)"><i class="fas fa-trash-alt"></i></button></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Customers Page -->
+                        <div x-show="currentPage === 'customers'">
+                            <div class="modern-card">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                                        <h4 class="fw-bold mb-0"><i class="fas fa-users me-2 text-primary"></i>إدارة الزبائن</h4>
+                                        <div class="d-flex gap-2">
+                                            <div class="input-group" style="width: 250px;">
+                                                <input type="text" class="form-control border-end-0" placeholder="بحث..." x-model="customerSearch" @input="filterCustomers()">
+                                                <span class="input-group-text bg-transparent border-start-0"><i class="fas fa-search"></i></span>
+                                            </div>
+                                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal"><i class="fas fa-user-plus me-2"></i>إضافة عميل</button>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle custom-table">
+                                            <thead><tr><th>اسم الزبون</th><th>الهاتف</th><th class="text-end">إجمالي الديون</th><th class="text-center">إجراءات</th></tr></thead>
+                                            <tbody>
+                                                <template x-for="cust in filteredCustomers" :key="cust.id">
+                                                    <tr>
+                                                        <td class="fw-semibold" x-text="cust.name"></td>
+                                                        <td x-text="cust.phone"></td>
+                                                        <td class="text-end text-danger fw-bold" x-text="cust.debt.toFixed(2) + ' ' + currencySymbol"></td>
+                                                        <td class="text-center"><button class="btn btn-sm btn-outline-danger rounded-3" @click="deleteCustomer(cust.id)"><i class="fas fa-trash-alt"></i></button></td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Suppliers Page -->
+                        <div x-show="currentPage === 'suppliers'">
+                            <div class="modern-card">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                                        <h4 class="fw-bold mb-0"><i class="fas fa-truck me-2 text-primary"></i>إدارة الموردين</h4>
+                                        <div class="d-flex gap-2">
+                                            <div class="input-group" style="width: 250px;">
+                                                <input type="text" class="form-control border-end-0" placeholder="بحث..." x-model="supplierSearch" @input="filterSuppliers()">
+                                                <span class="input-group-text bg-transparent border-start-0"><i class="fas fa-search"></i></span>
+                                            </div>
+                                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSupplierModal"><i class="fas fa-plus-circle me-2"></i>إضافة مورد</button>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle custom-table">
+                                            <thead><tr><th>اسم الشركة</th><th>جهة الاتصال</th><th class="text-end">الرصيد المستحق</th><th class="text-center">إجراءات</th></tr></thead>
+                                            <tbody>
+                                                <template x-for="sup in filteredSuppliers" :key="sup.id">
+                                                    <tr>
+                                                        <td class="fw-semibold" x-text="sup.name"></td>
+                                                        <td x-text="sup.phone + ' | ' + sup.email"></td>
+                                                        <td class="text-end text-warning fw-bold" x-text="sup.balance ? sup.balance.toFixed(2) + ' ' + currencySymbol : '0.00 ' + currencySymbol"></td>
+                                                        <td class="text-center"><button class="btn btn-sm btn-outline-danger rounded-3" @click="deleteSupplier(sup.id)"><i class="fas fa-trash-alt"></i></button></td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Categories Page -->
+                        <div x-show="currentPage === 'categories'">
+                            <div class="modern-card">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                                        <h4 class="fw-bold mb-0"><i class="fas fa-tags me-2 text-primary"></i>إدارة التصنيفات</h4>
+                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal"><i class="fas fa-plus me-2"></i>إضافة تصنيف</button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle custom-table">
+                                            <thead><tr><th>#</th><th>اسم التصنيف</th><th class="text-center">عدد المنتجات</th><th class="text-center">إجراءات</th></tr></thead>
+                                            <tbody>
+                                                <template x-for="(cat, idx) in categoriesList" :key="cat.id">
+                                                    <tr>
+                                                        <td x-text="idx + 1"></td>
+                                                        <td class="fw-semibold" x-text="cat.title"></td>
+                                                        <td class="text-center"><span class="badge bg-info" x-text="inventoryList.filter(p => p.category_id === cat.id).length"></span></td>
+                                                        <td class="text-center"><button class="btn btn-sm btn-outline-danger rounded-3" @click="deleteCategory(cat.id)"><i class="fas fa-trash-alt"></i></button></td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cashbox Page -->
+                        <div x-show="currentPage === 'cashbox'">
+                            <div class="row g-4">
+                                
+                                <template x-for="(drawer, idx) in cashDrawers" :key="idx">
+                                    <div class="col-md-4">
+                                        <div class="modern-card">
+                                            <div class="card-body p-4 text-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-block mb-3">
+                                                    <i class="fas fa-credit-card fa-2x text-primary"></i>
+                                                </div>
+                                                <h4 class="fw-bold mb-2" x-text="drawer.title"></h4>
+                                                <h2 class="text-primary fw-bold mb-3" x-text="drawer.drawer.toFixed(2) + ' ' + currencySymbol"></h2>
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span class="text-muted">الحالة:</span>
+                                                    <span :class="drawer.status === 'Open' ? 'text-success' : 'text-danger'" class="fw-bold" x-text="drawer.status === 'Open' ? 'مفتوح' : 'مغلق'"></span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-3">
+                                                    <span class="text-muted">آخر معاملة:</span>
+                                                    <small x-text="drawer.lastTransaction || '—'"></small>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button class="btn btn-outline-success btn-sm flex-grow-1" @click="toggleDrawerStatus(idx)">
+                                                        <i class="fas" :class="drawer.status === 'Open' ? 'fa-lock' : 'fa-lock-open'"></i> تغيير
+                                                    </button>
+                                                    <button class="btn btn-outline-info btn-sm flex-grow-1" data-bs-toggle="modal" data-bs-target="#transferModal" @click="selectedSourceDrawer = idx">
+                                                        <i class="fas fa-exchange-alt"></i> تحويل
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Settings Page -->
+                        <div x-show="currentPage === 'settings'">
+                            <div class="modern-card mx-auto" style="max-width: 700px;">
+                                <div class="card-body p-4">
+                                    <h4 class="fw-bold mb-4"><i class="fas fa-sliders-h me-2 text-primary"></i>إعدادات النظام</h4>
+                                    <div class="mb-3"><label class="form-label fw-semibold">اسم المتجر</label><input type="text" class="form-control rounded-3" x-model="storeName"></div>
+                                    <div class="mb-3"><label class="form-label fw-semibold">رمز العملة</label><input type="text" class="form-control rounded-3" x-model="currencySymbol" maxlength="5"></div>
+                                    <div class="mb-3"><label class="form-label fw-semibold">نص رأس الإيصال</label><textarea class="form-control rounded-3" rows="3" x-model="receiptHeader"></textarea></div>
+                                    <div class="mb-4 form-check form-switch"><input class="form-check-input" type="checkbox" x-model="darkModeEnabled" @change="toggleDarkMode()"><label class="form-check-label fw-semibold">الوضع الليلي</label></div>
+                                    <button class="btn btn-primary w-100 py-2 rounded-3" @click="saveSettings()"><i class="fas fa-save me-2"></i>حفظ الإعدادات</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0"><h5 class="modal-title fw-bold"><i class="fas fa-box-open me-2 text-primary"></i>إضافة منتج جديد</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12"><input type="text" class="form-control rounded-3" placeholder="اسم المنتج" x-model="newProduct.title"></div>
+                        <div class="col-6"><input type="number" class="form-control rounded-3" placeholder="السعر" x-model="newProduct.price"></div>
+                        <div class="col-6"><input type="number" class="form-control rounded-3" placeholder="الكمية" x-model="newProduct.quantity"></div>
+                        <div class="col-12"><input type="text" class="form-control rounded-3" placeholder="الباركود" x-model="newProduct.barcode"></div>
+                        <div class="col-12"><select class="form-select rounded-3" x-model="newProduct.category_id"><option value="">اختر التصنيف</option><template x-for="cat in categoriesList" :key="cat.id"><option :value="cat.id" x-text="cat.title"></option></template></select></div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0"><button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-primary rounded-3" @click="addInventoryProduct()" data-bs-dismiss="modal"><i class="fas fa-save me-2"></i>حفظ</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Customer Modal -->
+    <div class="modal fade" id="addCustomerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0"><h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-2 text-primary"></i>إضافة زبون جديد</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input class="form-control mb-3 rounded-3" placeholder="الاسم الكامل" x-model="newCustomer.name">
+                    <input class="form-control mb-3 rounded-3" placeholder="رقم الهاتف" x-model="newCustomer.phone">
+                    <input class="form-control mb-3 rounded-3" placeholder="الديون الأولية" x-model="newCustomer.debt">
+                </div>
+                <div class="modal-footer border-0"><button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-primary rounded-3" @click="addCustomer()" data-bs-dismiss="modal">إضافة</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Supplier Modal -->
+    <div class="modal fade" id="addSupplierModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0"><h5 class="modal-title fw-bold"><i class="fas fa-truck me-2 text-primary"></i>إضافة مورد جديد</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input class="form-control mb-3 rounded-3" placeholder="اسم الشركة" x-model="newSupplier.name">
+                    <input class="form-control mb-3 rounded-3" placeholder="رقم الهاتف" x-model="newSupplier.phone">
+                    <input class="form-control mb-3 rounded-3" placeholder="البريد الإلكتروني" x-model="newSupplier.email">
+                    <input class="form-control rounded-3" placeholder="الرصيد المستحق" x-model="newSupplier.balance" type="number">
+                </div>
+                <div class="modal-footer border-0"><button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-primary rounded-3" @click="addSupplier()" data-bs-dismiss="modal">إضافة</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0"><h5 class="modal-title fw-bold"><i class="fas fa-tag me-2 text-primary"></i>إضافة تصنيف جديد</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input class="form-control rounded-3" placeholder="اسم التصنيف" x-model="newCategoryTitle">
+                </div>
+                <div class="modal-footer border-0"><button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-primary rounded-3" @click="addCategory()" data-bs-dismiss="modal">إضافة</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Modal -->
+    <div class="modal fade" id="transferModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0"><h5 class="modal-title fw-bold"><i class="fas fa-exchange-alt me-2 text-primary"></i>تحويل الأموال</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <select class="form-select mb-3 rounded-3" x-model="transferTargetDrawer"><option disabled>اختر الخزنة المستهدفة</option><template x-for="(dr, idx) in cashDrawers" :key="idx"><option :value="idx" x-text="dr.name" :disabled="idx === selectedSourceDrawer"></option></template></select>
+                    <input type="number" class="form-control rounded-3" placeholder="المبلغ" x-model="transferAmount">
+                </div>
+                <div class="modal-footer border-0"><button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-primary rounded-3" @click="executeTransfer()" data-bs-dismiss="modal"><i class="fas fa-arrow-left me-2"></i>تحويل</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function app() {
+            return {
+                // App State
+                currentPage: 'home',
+                darkModeEnabled: false,
+                storeName: 'متجر CashboxPro',
+                currencySymbol: 'د.ج',
+                receiptHeader: 'شكراً لتسوقكم معنا',
+                isLoading: true,
+                
+                // Data
+                productList: [],
+                categoriesList: [],
+                suppliersList: [],
+                cashDrawers: [],
+                salesList: [],
+                filteredSales: [],
+                salesSearch: '',
+                
+                // Cart
+                cart: [],
+                cartTotal: 0,
+                barcodeQuery: '',
+                productSearchQuery: '',
+                filteredProducts: [],
+                fuseProducts: null,
+                
+                // Inventory
+                inventoryList: [],
+                invSearchQuery: '',
+                invSortBy: '',
+                invFilterType: '',
+                displayedInventory: [],
+                newProduct: { title: '', price: 0, quantity: 0, barcode: '', category_id: null },
+                newCategoryTitle: '',
+                
+                // Customers & Suppliers
+                customersList: [],
+                suppliersListData: [],
+                customerSearch: '',
+                supplierSearch: '',
+                filteredCustomers: [],
+                filteredSuppliers: [],
+                newCustomer: { name: '', phone: '', debt: 0},
+                newSupplier: { name: '', phone: '', email: '', balance: 0 },
+                
+                // Cash Drawers
+                cashDrawers: [],
+                selectedSourceDrawer: 0,
+                transferTargetDrawer: null,
+                transferAmount: 0,
+                
+                async init() {
+                    await this.loadProducts();
+                    await this.loadCategories();
+                    await this.loadSuppliers();
+                    await this.loadCustomers();
+                    await this.loadCashDrawers();
+                    await this.loadSales();
+                    
+                    this.inventoryList = [...this.productList];
+                    this.filteredProducts = [...this.productList];
+                    this.fuseProducts = new Fuse(this.productList, { keys: ['title', 'barcode'], threshold: 0.2 });
+                    this.applyInventoryFilters();
+                    this.filterCustomers();
+                    this.filterSuppliers();
+                    this.toggleDarkMode();
+                    this.isLoading = false;
+                },
+                
+                getPageTitle() {
+                    const titles = { 'home': 'نقطة البيع', 'sales': 'المبيعات', 'inventory': 'إدارة المخزون', 'customers': 'إدارة الزبائن', 'suppliers': 'إدارة الموردين', 'categories': 'إدارة التصنيفات', 'cashbox': 'الخزائن', 'settings': 'الإعدادات' };
+                    return titles[this.currentPage] || 'الرئيسية';
+                },
+                
+                async loadProducts() {
+                    try {
+                        const res = await fetch('/api/products');
+                        this.productList = await res.json();
+                    } catch (e) { 
+                        console.error('Failed to load products', e);
+                        this.productList = [];
+                    }
+                },
+                
+                async loadCategories() {
+                    try {
+                        const res = await fetch('/api/categories');
+                        this.categoriesList = await res.json();
+                    } catch (e) { 
+                        console.error('Failed to load categories', e);
+                        this.categoriesList = [];
+                    }
+                },
+                
+                async loadSuppliers() {
+                    try {
+                        const res = await fetch('/api/suppliers');
+                        this.suppliersListData = await res.json();
+                    } catch (e) { 
+                        console.error('Failed to load suppliers', e);
+                        this.suppliersListData = [];
+                    }
+                },
+                
+                async loadCustomers() {
+                    try {
+                        const res = await fetch('/api/customers');
+                        this.customersList = await res.json();
+                    } catch (e) { 
+                        console.error('Failed to load customers', e);
+                        this.customersList = [];
+                    }
+                    this.filteredCustomers = [...this.customersList];
+                },
+
+                async loadCashDrawers() {
+                    try {
+                        const res = await fetch('/api/cashboxes');
+                        this.cashDrawers = await res.json();
+                    } catch (e) { 
+                        console.error('Failed to load cashboxes', e);
+                        this.cashDrawers = [];
+                    }
+                },
+
+                async loadSales() {
+                    try {
+                        const res = await fetch('/api/sales');
+                        const data = await res.json();
+                        this.salesList = data;
+                        this.filteredSales = data;
+                    } catch (e) {
+                        console.error('Failed to load sales', e);
+                        this.salesList = [];
+                        this.filteredSales = [];
+                    }
+                },
+
+                filterSales() {
+                    if (!this.salesSearch.trim()) {
+                        this.filteredSales = [...this.salesList];
+                    } else {
+                        this.filteredSales = this.salesList.filter(s => 
+                            (s.product_title && s.product_title.toLowerCase().includes(this.salesSearch.toLowerCase())) ||
+                            (s.product_barcode && s.product_barcode.includes(this.salesSearch))
+                        );
+                    }
+                },
+
+                get totalSales() {
+                    return this.salesList.reduce((sum, s) => sum + ((s.price || 0) * s.quantity), 0);
+                },
+
+                get totalItemsSold() {
+                    return this.salesList.reduce((sum, s) => sum + s.quantity, 0);
+                },
+
+                get todaySales() {
+                    const today = new Date().toDateString();
+                    return this.salesList.filter(s => {
+                        const saleDate = new Date(s.date).toDateString();
+                        return saleDate === today;
+                    }).reduce((sum, s) => sum + ((s.price || 0) * s.quantity), 0);
+                },
+
+                formatDate(dateString) {
+                    if (!dateString) return '—';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('ar-EG', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+
+                exportSalesReport() {
+                    let csv = "التاريخ,المنتج,الباركود,الكمية,السعر,الإجمالي\n";
+                    this.filteredSales.forEach(sale => {
+                        csv += `${formatDate(sale.date)},${sale.product_title || 'محذوف'},${sale.product_barcode || '—'},${sale.quantity},${sale.price || 0},${((sale.price || 0) * sale.quantity)}\n`;
+                    });
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `sales_report_${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                },
+
+                
+                filterProducts() {
+                    if (!this.productSearchQuery.trim()) this.filteredProducts = [...this.productList];
+                    else this.filteredProducts = this.fuseProducts.search(this.productSearchQuery).map(r => r.item);
+                },
+                
+                handleBarcode() {
+                    let found = this.productList.filter(p => p.barcode === this.barcodeQuery);
+                    found = JSON.parse(JSON.stringify(found));
+                    if (found[0]) {
+                        this.addToCart(found[0]);
+                    }
+                    this.barcodeQuery = '';
+                },
+                
+                addToCart(prod) {
+                    let existing = this.cart.find(i => i.id === prod.id);
+                    if (existing) existing.quantity++;
+                    else this.cart.push({ ...prod, quantity: 1 });
+                    this.recalcCartTotal();
+                },
+                
+                updateCartQty(item, delta) {
+                    let newQty = item.quantity + delta;
+                    if (newQty <= 0) this.removeFromCart(this.cart.indexOf(item));
+                    else { item.quantity = newQty; this.recalcCartTotal(); }
+                },
+                
+                removeFromCart(idx) { this.cart.splice(idx, 1); this.recalcCartTotal(); },
+                clearCart() { this.cart = []; this.cartTotal = 0; },
+                recalcCartTotal() { this.cartTotal = this.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0); },
+
+                async printBill() {
+                    try {
+                        await fetch('/api/print', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ items: this.cart })
+                        });
+                    } catch (e) { console.error('print failed', e); }
+
+                    this.clearCart();
+                    await this.loadProducts();
+                    this.inventoryList = [...this.productList];
+                    this.filteredProducts = [...this.productList];
+                    this.applyInventoryFilters();
+                },
+                
+                async validateOrder() {
+                    for (let item of this.cart) {
+                        try {
+                            await fetch('/api/sales/add', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ product_id: item.id, quantity: item.quantity, total: item.price * item.quantity })
+                            });
+                        } catch (e) { console.error('Sale failed', e); }
+                    }
+                    alert('تم تأكيد الطلب بنجاح!');
+                    this.clearCart();
+                    await this.loadProducts();
+                    this.inventoryList = [...this.productList];
+                    this.filteredProducts = [...this.productList];
+                    this.applyInventoryFilters();
+                },
+                
+                applyInventoryFilters() {
+                    let filtered = [...this.inventoryList];
+                    if (this.invSearchQuery.trim()) {
+                        let fuseInv = new Fuse(this.inventoryList, { keys: ['title', 'barcode'], threshold: 0.2 });
+                        filtered = fuseInv.search(this.invSearchQuery).map(r => r.item);
+                    }
+                    if (this.invFilterType === 'low-stock') filtered = filtered.filter(p => p.quantity < 50);
+                    if (this.invFilterType === 'low-revenue') filtered = filtered.filter(p => p.price < 50);
+                    if (this.invSortBy === 'price-asc') filtered.sort((a, b) => a.price - b.price);
+                    else if (this.invSortBy === 'price-desc') filtered.sort((a, b) => b.price - a.price);
+                    else if (this.invSortBy === 'stock-low') filtered.sort((a, b) => a.quantity - b.quantity);
+                    this.displayedInventory = filtered;
+                },
+                
+                get inventoryTotalValue() { return this.inventoryList.reduce((sum, p) => sum + (p.price * p.quantity), 0); },
+                
+                async addInventoryProduct() {
+                    if (this.newProduct.title && this.newProduct.barcode) {
+                        try {
+                            const res = await fetch('/api/products', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    title: this.newProduct.title,
+                                    barcode: this.newProduct.barcode,
+                                    quantity: Number(this.newProduct.quantity),
+                                    price: Number(this.newProduct.price),
+                                    category_id: this.newProduct.category_id
+                                })
+                            });
+                            if (res.ok) {
+                                await this.loadProducts();
+                                this.inventoryList = [...this.productList];
+                                this.filteredProducts = [...this.productList];
+                                this.applyInventoryFilters();
+                                this.newProduct = { title: '', price: 0, quantity: 0, barcode: '', category_id: null };
+                                alert('تم إضافة المنتج بنجاح!');
+                            }
+                        } catch (e) { console.error('Failed to add product', e); }
+                    } else alert('الرجاء ملء اسم المنتج والباركود');
+                },
+                
+                async deleteProduct(id) {
+                    if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+                        try {
+                            await fetch(`/api/products/${id}`, { method: 'DELETE' });
+                            await this.loadProducts();
+                            this.inventoryList = [...this.productList];
+                            this.filteredProducts = [...this.productList];
+                            this.applyInventoryFilters();
+                        } catch (e) { console.error('Delete failed', e); }
+                    }
+                },
+                
+                async addCategory() {
+                    if (this.newCategoryTitle) {
+                        try {
+                            const res = await fetch('/api/categories', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ title: this.newCategoryTitle })
+                            });
+                            if (res.ok) {
+                                await this.loadCategories();
+                                this.newCategoryTitle = '';
+                                alert('تم إضافة التصنيف بنجاح!');
+                            }
+                        } catch (e) { console.error('Failed to add category', e); }
+                    }
+                },
+                
+                async deleteCategory(id) {
+                    if (confirm('هل أنت متأكد من حذف هذا التصنيف؟')) {
+                        alert('سيتم حذف التصنيف من قاعدة البيانات');
+                    }
+                },
+                
+                filterCustomers() {
+                    if (!this.customerSearch.trim()) this.filteredCustomers = [...this.customersList];
+                    else this.filteredCustomers = this.customersList.filter(c => c.name.includes(this.customerSearch) || c.phone.includes(this.customerSearch));
+                },
+                
+                filterSuppliers() {
+                    if (!this.supplierSearch.trim()) this.filteredSuppliers = [...this.suppliersListData];
+                    else this.filteredSuppliers = this.suppliersListData.filter(s => s.name.includes(this.supplierSearch) || s.phone.includes(this.supplierSearch));
+                },
+                
+                async deleteCustomer(id) {
+                    if (confirm('هل أنت متأكد من حذف هذا الزبون؟')) {
+                        try {
+                            await fetch(`/api/customers/delete/${id}`, { method: 'DELETE' });
+                            await this.loadCustomers();
+                           
+                        } catch (e) { console.error('Delete failed', e); }
+                    }
+                },
+                
+                async addCustomer() {
+                    if (this.newCustomer.name) {
+                        try {
+                            const res = await fetch('/api/customer', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    name: this.newCustomer.name,
+                                    phone: this.newCustomer.phone,
+                                    debt: this.newCustomer.debt
+                                })
+                            });
+                            if (res.ok) {
+                                await this.loadCustomers();
+                                this.newCustomer = { name: '', phone: '', debt: 0 };
+                            }
+                        } catch (e) { console.error('Failed to add customer', e); }
+                    }
+                },
+
+                async addSupplier() {
+                    if (this.newSupplier.name) {
+                        try {
+                            const res = await fetch('/api/suppliers', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    name: this.newSupplier.name,
+                                    phone: this.newSupplier.phone,
+                                    email: this.newSupplier.email
+                                })
+                            });
+                            if (res.ok) {
+                                await this.loadSuppliers();
+                                this.newSupplier = { name: '', phone: '', email: '', balance: 0 };
+                                alert('تم إضافة المورد بنجاح!');
+                            }
+                        } catch (e) { console.error('Failed to add supplier', e); }
+                    }
+                },
+                
+                async deleteSupplier(id) {
+                    if (confirm('هل أنت متأكد من حذف هذا المورد؟')) {
+                        try {
+                            await fetch(`/api/suppliers/${id}`, { method: 'DELETE' });
+                            await this.loadSuppliers();
+                            alert('تم حذف المورد!');
+                        } catch (e) { console.error('Delete failed', e); }
+                    }
+                },
+                
+                toggleDrawerStatus(idx) { this.cashDrawers[idx].status = this.cashDrawers[idx].status === 'Open' ? 'Closed' : 'Open'; },
+                
+                executeTransfer() {
+                    if (this.transferTargetDrawer !== null && this.transferAmount > 0 && this.selectedSourceDrawer !== this.transferTargetDrawer) {
+                        let amount = Number(this.transferAmount);
+                        if (this.cashDrawers[this.selectedSourceDrawer].balance >= amount) {
+                            this.cashDrawers[this.selectedSourceDrawer].balance -= amount;
+                            this.cashDrawers[this.transferTargetDrawer].balance += amount;
+                            let now = new Date().toLocaleDateString('ar-EG');
+                            this.cashDrawers[this.selectedSourceDrawer].lastTransaction = `تحويل -${amount} ${now}`;
+                            this.cashDrawers[this.transferTargetDrawer].lastTransaction = `تحويل +${amount} ${now}`;
+                            alert('تم تحويل المبلغ بنجاح!');
+                        } else alert('الرصيد غير كافٍ في الخزنة المصدر');
+                    } else alert('بيانات التحويل غير صالحة');
+                    this.transferAmount = 0;
+                },
+                
+                toggleDarkMode() { document.body.classList.toggle('dark-mode', this.darkModeEnabled); },
+                saveSettings() {
+                    localStorage.setItem('cashboxSettings', JSON.stringify({
+                        storeName: this.storeName, currencySymbol: this.currencySymbol,
+                        receiptHeader: this.receiptHeader, darkMode: this.darkModeEnabled
+                    }));
+                    alert('تم حفظ الإعدادات بنجاح!');
+                }
+            };
+        }
+    </script>
+</body>
+</html>
+{% endblock %}
