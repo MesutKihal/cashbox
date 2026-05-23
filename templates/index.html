@@ -10,6 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
@@ -60,7 +61,7 @@
         }
         
         body.dark-mode .sidebar-nav {
-            background: #1e293b;
+            background: #161a20;
         }
         
         .nav-item-custom {
@@ -69,6 +70,7 @@
             gap: 12px;
             padding: 12px 16px;
             border-radius: 16px;
+            font-size: 20px;
             color: #64748b;
             transition: all 0.2s;
             cursor: pointer;
@@ -119,7 +121,11 @@
             border: 1px solid #e2e8f0;
             background: white;
         }
-        
+
+        .product-card > h6 {
+            font-size: 23px;
+        }
+
         body.dark-mode .product-card {
             background: #1e293b;
             border-color: #334155;
@@ -138,7 +144,7 @@
         .custom-table thead th {
             background: #f8fafc;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 1rem;
@@ -239,6 +245,85 @@
             border-top-left-radius: 0.375rem;
             border-bottom-left-radius: 0.375rem;
         }
+        .vanilla-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .vanilla-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+        }
+        .vanilla-modal-container {
+            position: relative;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 450px;
+            animation: modalFadeIn 0.2s ease;
+        }
+        body.dark-mode .vanilla-modal-container {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+        .vanilla-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        body.dark-mode .vanilla-modal-header {
+            border-bottom-color: #334155;
+        }
+        .vanilla-modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .vanilla-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+            color: #64748b;
+        }
+        .vanilla-modal-close:hover {
+            color: #3b82f6;
+        }
+        .vanilla-modal-body {
+            padding: 1.5rem;
+            font-size: 1rem;
+            text-align: center;
+        }
+        .vanilla-modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        body.dark-mode .vanilla-modal-footer {
+            border-top-color: #334155;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body x-data="app()" x-init="init()" x-cloak>
@@ -253,7 +338,7 @@
                                 <i class="fas fa-donate fa-2x text-primary"></i>
                             </div>
                             <h5 class="fw-bold mt-2 mb-0">Cashbox<span class="text-primary">Pro</span></h5>
-                            <small class="text-muted" x-text="storeName"></small>
+                            <small class="text-muted" x-text="settings.store_name"></small>
                         </div>
                         <div class="nav flex-column gap-2">
                             <button class="nav-item-custom" @click="currentPage = 'home'" :class="currentPage === 'home' ? 'active' : ''">
@@ -312,11 +397,11 @@
                         <div x-show="currentPage === 'home'">
                             <div class="row g-4">
                                 <div class="col-md-6">
-                                    <div class="modern-card h-100">
+                                    <div class="modern-card">
                                         <div class="card-body p-4">
                                             <div class="stat-card mb-4 text-center">
                                                 <span class="h6 text-white-50">إجمالي السلة</span>
-                                                <h1 class="display-4 fw-bold mb-0" x-text="cartTotal.toFixed(2) + ' ' + currencySymbol">0.00</h1>
+                                                <h1 class="display-4 fw-bold mb-0" x-text="cartTotal.toFixed(2) + ' ' + settings.currency_symbol">0.00</h1>
                                             </div>
                                             <div class="input-group mb-4">
                                                 <input type="text" class="form-control form-control-lg rounded-3" placeholder="مسح الباركود أو الكتابة..." 
@@ -360,13 +445,17 @@
                                             <div class="row g-3 mt-3">
                                                 <div class="col-6"><button class="btn btn-outline-secondary w-100 py-2 rounded-3"  @click="printBill()"><i class="fas fa-print me-2"></i>طباعة</button></div>
                                                 <div class="col-6"><button class="btn btn-outline-danger w-100 py-2 rounded-3" @click="clearCart()"><i class="fas fa-trash-alt me-2"></i>تفريغ</button></div>
+                                                <div class="col-12"><button class="btn btn-warning w-100 py-3 fw-bold rounded-3" @click="generateProforma()"><i class="fas fa-print me-2"></i>طباعة فاتورة أولية</button></div>
+                                                <template x-if="selectedCustomer">
+                                                    <div class="col-12"><button class="btn btn-danger w-100 py-3 fw-bold rounded-3" @click="customerDebt()"><i class="fas fa-check-circle me-2"></i> دين</button></div>
+                                                </template>
                                                 <div class="col-12"><button class="btn btn-success w-100 py-3 fw-bold rounded-3" @click="validateOrder()"><i class="fas fa-check-circle me-2"></i>تأكيد الطلب</button></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="modern-card h-100">
+                                    <div class="modern-card overflow-auto-custom">
                                         <div class="card-body p-4">
                                             <div class="mb-4">
                                                 <div class="input-group">
@@ -374,7 +463,25 @@
                                                     <span class="input-group-text bg-transparent border-start-0 rounded-3"><i class="fas fa-search text-muted"></i></span>
                                                 </div>
                                             </div>
-                                            <div class="row g-3 overflow-auto-custom" style="max-height: 550px;">
+                                            <div class="mb-4">
+                                                <label class="form-label fw-semibold">تصفية حسب التصنيف</label>
+                                                <select class="form-select rounded-3" x-model="posSelectedCategoryId" @change="filterByCategory()">
+                                                    <option value="">كل التصنيفات</option>
+                                                    <template x-for="cat in categoriesList" :key="cat.id">
+                                                        <option :value="cat.id" x-text="cat.title"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                            <div class="mb-4">
+                                                <label class="form-label fw-semibold">اختيار الزبون</label>
+                                                <select class="form-select rounded-3" x-model="selectedCustomer">
+                                                    <option value="">كل الزبائن</option>
+                                                    <template x-for="cus in customersList" :key="cus.id">
+                                                        <option :value="cus.id" x-text="cus.name"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                            <div class="row g-3 overflow-auto-custom">
                                                 <template x-for="prod in filteredProducts" :key="prod.id">
                                                     <div class="col-md-6">
                                                         <div class="product-card p-3 text-center" @click="addToCart(prod)">
@@ -382,8 +489,8 @@
                                                                 <i class="fas fa-box-open fa-2x text-primary"></i>
                                                             </div>
                                                             <h6 class="fw-bold mb-1" x-text="prod.title"></h6>
-                                                            <small class="text-muted"><i class="fas fa-database"></i> <span x-text="prod.quantity"></span> في المخزون</small>
-                                                            <h5 class="text-primary fw-bold mt-2 mb-0" x-text="prod.price.toFixed(2) + ' ' + currencySymbol"></h5>
+                                                            <small :class="prod.quantity < 1 ? 'text-danger' : 'text-success'"><i class="fas fa-database"></i> <span x-text="prod.quantity"></span> في المخزون</small>
+                                                            <h5 class="text-primary fw-bold mt-2 mb-0" x-text="prod.price.toFixed(2) + ' ' + settings.currency_symbol"></h5>
                                                         </div>
                                                     </div>
                                                 </template>
@@ -395,53 +502,158 @@
                         </div>
                         <!-- Sales Page -->
                         <div x-show="currentPage === 'sales'">
+                            <!-- Stats Row with more detailed metrics -->
                             <div class="row g-4 mb-4">
                                 <div class="col-md-3">
                                     <div class="stat-card stat-card-info">
                                         <i class="fas fa-chart-line fa-2x mb-2"></i>
-                                        <h6 class="text-white-50 mb-0">إجمالي المبيعات</h6>
-                                        <h2 class="fw-bold mb-0" x-text="totalSales.toFixed(2) + ' ' + currencySymbol">0.00</h2>
+                                        <h6 class="text-white-50 mb-0">إجمالي الإيرادات</h6>
+                                        <h2 class="fw-bold mb-0" x-text="totalRevenue.toFixed(2) + ' ' + settings.currency_symbol">0.00</h2>
+                                        <small class="text-white-50">من جميع المبيعات</small>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="stat-card stat-card-success">
-                                        <i class="fas fa-exchange-alt fa-2x mb-2"></i>
-                                        <h6 class="text-white-50 mb-0">عدد المعاملات</h6>
-                                        <h2 class="fw-bold mb-0" x-text="salesList.length">0</h2>
+                                        <i class="fas fa-percent fa-2x mb-2"></i>
+                                        <h6 class="text-white-50 mb-0">متوسط قيمة الفاتورة</h6>
+                                        <h2 class="fw-bold mb-0" x-text="averageTransactionValue.toFixed(2) + ' ' + settings.currency_symbol">0.00</h2>
+                                        <small class="text-white-50">لكل معاملة</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-card">
+                                        <i class="fas fa-boxes fa-2x mb-2"></i>
+                                        <h6 class="text-white-50 mb-0">إجمالي القطع المباعة</h6>
+                                        <h2 class="fw-bold mb-0" x-text="totalItemsSold">0</h2>
+                                        <small class="text-white-50">منتج</small>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="stat-card stat-card-warning">
-                                        <i class="fas fa-boxes fa-2x mb-2"></i>
-                                        <h6 class="text-white-50 mb-0">المنتجات المباعة</h6>
-                                        <h2 class="fw-bold mb-0" x-text="totalItemsSold">0</h2>
+                                        <i class="fas fa-truck fa-2x mb-2"></i>
+                                        <h6 class="text-white-50 mb-0">إيرادات الجملة</h6>
+                                        <h2 class="fw-bold mb-0" x-text="wholesaleRevenue.toFixed(2) + ' ' + settings.currency_symbol">0.00</h2>
+                                        <small class="text-white-50">حسب سعر الصندوق</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Second row of stats -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-3">
+                                    <div class="stat-card stat-card-success">
+                                        <i class="fas fa-chart-simple fa-2x mb-2"></i>
+                                        <h6 class="text-white-50 mb-0">أعلى منتج مبيعاً</h6>
+                                        <h5 class="fw-bold mb-0" x-text="topProduct.name || '—'"></h5>
+                                        <small class="text-white-50" x-text="topProduct.quantity ? topProduct.quantity + ' قطعة' : ''"></small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-card stat-card-info">
+                                        <i class="fas fa-chart-line fa-2x mb-2"></i>
+                                        <h6 class="text-white-50 mb-0">الربح التقديري</h6>
+                                        <h2 class="fw-bold mb-0" x-text="estimatedProfit.toFixed(2) + ' ' + settings.currency_symbol">0.00</h2>
+                                        <small class="text-white-50">(تجزئة - جملة)</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-card stat-card-warning">
+                                        <i class="fas fa-exchange-alt fa-2x mb-2"></i>
+                                        <h6 class="text-white-50 mb-0">عدد المعاملات</h6>
+                                        <h2 class="fw-bold mb-0" x-text="salesList.length">0</h2>
+                                        <small class="text-white-50">عملية بيع</small>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="stat-card">
                                         <i class="fas fa-calendar-week fa-2x mb-2"></i>
                                         <h6 class="text-white-50 mb-0">مبيعات اليوم</h6>
-                                        <h2 class="fw-bold mb-0" x-text="todaySales.toFixed(2) + ' ' + currencySymbol">0.00</h2>
+                                        <h2 class="fw-bold mb-0" x-text="todaySales.toFixed(2) + ' ' + settings.currency_symbol">0.00</h2>
+                                        <small class="text-white-50">آخر 24 ساعة</small>
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Filters -->
+                            <div class="modern-card mb-4">
+                                <div class="card-body p-4">
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold">الفترة الزمنية</label>
+                                            <select class="form-select rounded-3" x-model="salesPeriod" @change="filterSalesByPeriod()">
+                                                <option value="daily">يومي</option>
+                                                <option value="weekly">أسبوعي</option>
+                                                <option value="monthly">شهري</option>
+                                                <option value="yearly">سنوي</option>
+                                                <option value="all">كل الفترات</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3" x-show="salesPeriod === 'daily'">
+                                            <label class="form-label fw-semibold">اختر التاريخ</label>
+                                            <input type="date" class="form-control rounded-3" x-model="selectedDate" @change="filterSalesByPeriod()">
+                                        </div>
+                                        <div class="col-md-3" x-show="salesPeriod === 'monthly'">
+                                            <label class="form-label fw-semibold">الشهر والسنة</label>
+                                            <input type="month" class="form-control rounded-3" x-model="selectedMonth" @change="filterSalesByPeriod()">
+                                        </div>
+                                        <div class="col-md-3" x-show="salesPeriod === 'yearly'">
+                                            <label class="form-label fw-semibold">السنة</label>
+                                            <input type="number" class="form-control rounded-3" placeholder="السنة" x-model="selectedYear" @change="filterSalesByPeriod()">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold">بحث</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control border-end-0 rounded-3" placeholder="بحث عن منتج..." x-model="salesSearch" @input="filterSales()">
+                                                <span class="input-group-text bg-transparent border-start-0 rounded-3"><i class="fas fa-search text-muted"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold">&nbsp;</label>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-outline-primary w-100" @click="exportSalesReport()">
+                                                    <i class="fas fa-file-excel me-2"></i>تصدير
+                                                </button>
+                                                <button class="btn btn-outline-secondary w-100" @click="loadSales()">
+                                                    <i class="fas fa-sync-alt me-2"></i>تحديث
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sales Chart (simple bar representation) -->
+                            <div class="modern-card mb-4" x-show="salesPeriod !== 'all'">
+                                <div class="card-body p-4">
+                                    <h5 class="fw-bold mb-3"><i class="fas fa-chart-bar me-2 text-primary"></i>ملخص المبيعات</h5>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="text-center p-3 bg-light rounded-3" :class="darkModeEnabled ? 'bg-dark' : 'bg-light'">
+                                                <h6 class="text-muted">إجمالي الإيرادات</h6>
+                                                <h4 class="text-primary fw-bold" x-text="periodTotalRevenue.toFixed(2) + ' ' + settings.currency_symbol">0.00</h4>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-center p-3 bg-light rounded-3" :class="darkModeEnabled ? 'bg-dark' : 'bg-light'">
+                                                <h6 class="text-muted">عدد المبيعات</h6>
+                                                <h4 class="text-success fw-bold" x-text="periodSalesCount">0</h4>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-center p-3 bg-light rounded-3" :class="darkModeEnabled ? 'bg-dark' : 'bg-light'">
+                                                <h6 class="text-muted">إجمالي القطع</h6>
+                                                <h4 class="text-warning fw-bold" x-text="periodItemsCount">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sales Table -->
                             <div class="modern-card">
                                 <div class="card-body p-4">
                                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                                         <h4 class="fw-bold mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>سجل المبيعات</h4>
-                                        <div class="d-flex gap-2">
-                                            <div class="input-group" style="width: 250px;">
-                                                <input type="text" class="form-control border-end-0 rounded-3" placeholder="بحث عن منتج..." x-model="salesSearch" @input="filterSales()">
-                                                <span class="input-group-text bg-transparent border-start-0 rounded-3"><i class="fas fa-search text-muted"></i></span>
-                                            </div>
-                                            <button class="btn btn-outline-primary" @click="exportSalesReport()">
-                                                <i class="fas fa-file-excel me-2"></i>تصدير
-                                            </button>
-                                            <button class="btn btn-outline-secondary" @click="loadSales()">
-                                                <i class="fas fa-sync-alt me-2"></i>تحديث
-                                            </button>
-                                        </div>
                                     </div>
                                     <div class="table-responsive" style="max-height: 500px;">
                                         <table class="table table-hover align-middle custom-table">
@@ -451,8 +663,11 @@
                                                     <th>المنتج</th>
                                                     <th>الباركود</th>
                                                     <th class="text-center">الكمية</th>
-                                                    <th class="text-end">السعر</th>
-                                                    <th class="text-end">الإجمالي</th>
+                                                    <th class="text-end">سعر التجزئة</th>
+                                                    <th class="text-end">سعر الجملة</th>
+                                                    <th class="text-end">الإجمالي (تجزئة)</th>
+                                                    <th class="text-end">الإجمالي (جملة)</th>
+                                                    <th class="text-end">الفرق</th>
                                                     <th class="text-center">التاريخ</th>
                                                 </tr>
                                             </thead>
@@ -463,13 +678,30 @@
                                                         <td class="fw-semibold" x-text="sale.product_title || 'منتج محذوف'"></td>
                                                         <td><code x-text="sale.product_barcode || '—'"></code></td>
                                                         <td class="text-center"><span class="badge bg-primary" x-text="sale.quantity"></span></td>
-                                                        <td class="text-end" x-text="(sale.price || 0).toFixed(2) + ' ' + currencySymbol"></td>
-                                                        <td class="text-end fw-bold text-success" x-text="(sale.total || 0).toFixed(2) + ' ' + currencySymbol"></td>
-                                                        <td class="text-center"><small x-text="formatDate(sale.date)"></small></td>
+                                                        <td class="text-end" x-text="(sale.price || 0).toFixed(2) + ' ' + settings.currency_symbol"></td>
+                                                        <td class="text-end text-muted">
+                                                            <span x-show="sale.box_price && sale.item_per_box">
+                                                                <span x-text="((sale.box_price / sale.item_per_box) || 0).toFixed(2)"></span> / قطعة
+                                                            </span>
+                                                            <span x-show="!sale.box_price || !sale.item_per_box">—</span>
+                                                        </td>
+                                                        <td class="text-end fw-bold text-success" x-text="(sale.total || 0).toFixed(2) + ' ' + settings.currency_symbol"></td>
+                                                        <td class="text-end text-muted">
+                                                            <span x-show="sale.box_price && sale.item_per_box">
+                                                                <span x-text="(sale.wholesale_total || 0).toFixed(2)"></span> 
+                                                            </span>
+                                                            <span x-show="!sale.box_price || !sale.item_per_box">—</span>
+                                                        </td>
+                                                        <td class="text-end">
+                                                            <span class="badge" :class="(sale.total - (sale.wholesale_total || 0)) > 0 ? 'bg-success' : 'bg-secondary'">
+                                                                <span x-text="((sale.total || 0) - (sale.wholesale_total || 0)).toFixed(2)"></span>
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-center" dir="ltr"><small x-text="formatDate(sale.date)"></small></td>
                                                     </tr>
                                                 </template>
                                                 <tr x-show="filteredSales.length === 0">
-                                                    <td colspan="7" class="text-center text-muted py-5">لا توجد مبيعات مسجلة</td>
+                                                    <td colspan="10" class="text-center text-muted py-5">لا توجد مبيعات مسجلة</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -483,7 +715,7 @@
                             <div class="row g-4 mb-4">
                                 <div class="col-md-3"><div class="stat-card stat-card-info"><i class="fas fa-cubes fa-2x mb-2"></i><h5 class="text-white-50 mb-0">إجمالي المنتجات</h5><h2 class="fw-bold mb-0" x-text="inventoryList.length"></h2></div></div>
                                 <div class="col-md-3"><div class="stat-card stat-card-warning"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><h5 class="text-white-50 mb-0">منتجات منخفضة</h5><h2 class="fw-bold mb-0" x-text="inventoryList.filter(p => p.quantity < 50).length"></h2></div></div>
-                                <div class="col-md-3"><div class="stat-card stat-card-success"><i class="fas fa-chart-line fa-2x mb-2"></i><h5 class="text-white-50 mb-0">قيمة المخزون</h5><h2 class="fw-bold mb-0" x-text="inventoryTotalValue.toFixed(0) + ' ' + currencySymbol"></h2></div></div>
+                                <div class="col-md-3"><div class="stat-card stat-card-success"><i class="fas fa-chart-line fa-2x mb-2"></i><h5 class="text-white-50 mb-0">قيمة المخزون</h5><h2 class="fw-bold mb-0" x-text="inventoryTotalValue.toFixed(0) + ' ' + settings.currency_symbol"></h2></div></div>
                                 <div class="col-md-3"><div class="stat-card"><i class="fas fa-tags fa-2x mb-2"></i><h5 class="text-white-50 mb-0">التصنيفات</h5><h2 class="fw-bold mb-0" x-text="categoriesList.length"></h2></div></div>
                             </div>
                             <div class="modern-card mb-4">
@@ -508,8 +740,17 @@
                                                     <td class="ps-4"><div class="fw-bold" x-text="prod.title"></div><small class="text-muted">الرقم: <span x-text="prod.barcode"></span></small></td>
                                                     <td><code x-text="prod.barcode"></code></td>
                                                     <td class="text-center"><span :class="prod.quantity < 50 ? 'badge bg-danger' : 'badge bg-success'" x-text="prod.quantity"></span></td>
-                                                    <td class="text-end fw-bold text-primary" x-text="prod.price.toFixed(2) + ' ' + currencySymbol"></td>
-                                                    <td class="text-center"><button class="btn btn-sm btn-outline-danger rounded-3" @click="deleteProduct(prod.id)"><i class="fas fa-trash-alt"></i></button></td>
+                                                    <td class="text-end fw-bold text-primary" x-text="prod.price.toFixed(2) + ' ' + settings.currency_symbol"></td>
+                                                    <td class="text-center">
+                                                    <div class="btn-group btn-group-sm">
+                                                            <button class="btn btn-sm btn-outline-primary rounded-3 ms-1" @click="openEditModal(prod)">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-danger rounded-3" @click="deleteProduct(prod.id)">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             </template>
                                         </tbody>
@@ -540,7 +781,7 @@
                                                     <tr>
                                                         <td class="fw-semibold" x-text="cust.name"></td>
                                                         <td x-text="cust.phone"></td>
-                                                        <td class="text-end text-danger fw-bold" x-text="cust.debt.toFixed(2) + ' ' + currencySymbol"></td>
+                                                        <td class="text-end text-danger fw-bold" x-text="cust.debt.toFixed(2) + ' ' + settings.currency_symbol"></td>
                                                         <td class="text-center"><button class="btn btn-sm btn-outline-danger rounded-3" @click="deleteCustomer(cust.id)"><i class="fas fa-trash-alt"></i></button></td>
                                                     </tr>
                                                 </template>
@@ -567,13 +808,13 @@
                                     </div>
                                     <div class="table-responsive">
                                         <table class="table table-hover align-middle custom-table">
-                                            <thead><tr><th>اسم الشركة</th><th>جهة الاتصال</th><th class="text-end">الرصيد المستحق</th><th class="text-center">إجراءات</th></tr></thead>
+                                            <thead><tr><th>اسم الشركة</th><th>جهة الاتصال</th><th>عنوان</th><th class="text-center">إجراءات</th></tr></thead>
                                             <tbody>
                                                 <template x-for="sup in filteredSuppliers" :key="sup.id">
                                                     <tr>
                                                         <td class="fw-semibold" x-text="sup.name"></td>
-                                                        <td x-text="sup.phone + ' | ' + sup.email"></td>
-                                                        <td class="text-end text-warning fw-bold" x-text="sup.balance ? sup.balance.toFixed(2) + ' ' + currencySymbol : '0.00 ' + currencySymbol"></td>
+                                                        <td x-text="sup.phone"></td>
+                                                        <td x-text="sup.address"></td>
                                                         <td class="text-center"><button class="btn btn-sm btn-outline-danger rounded-3" @click="deleteSupplier(sup.id)"><i class="fas fa-trash-alt"></i></button></td>
                                                     </tr>
                                                 </template>
@@ -613,9 +854,14 @@
 
                         <!-- Cashbox Page -->
                         <div x-show="currentPage === 'cashbox'">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4 class="fw-bold mb-0"><i class="fas fa-money-bill-wave me-2 text-primary"></i>الخزائن</h4>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCashboxModal">
+                                    <i class="fas fa-plus me-2"></i>إضافة خزنة جديدة
+                                </button>
+                            </div>
                             <div class="row g-4">
-                                
-                                <template x-for="(drawer, idx) in cashDrawers" :key="idx">
+                                <template x-for="(drawer, idx) in cashDrawers" :key="drawer.id">
                                     <div class="col-md-4">
                                         <div class="modern-card">
                                             <div class="card-body p-4 text-center">
@@ -623,21 +869,16 @@
                                                     <i class="fas fa-credit-card fa-2x text-primary"></i>
                                                 </div>
                                                 <h4 class="fw-bold mb-2" x-text="drawer.title"></h4>
-                                                <h2 class="text-primary fw-bold mb-3" x-text="drawer.drawer.toFixed(2) + ' ' + currencySymbol"></h2>
-                                                <div class="d-flex justify-content-between mb-2">
-                                                    <span class="text-muted">الحالة:</span>
-                                                    <span :class="drawer.status === 'Open' ? 'text-success' : 'text-danger'" class="fw-bold" x-text="drawer.status === 'Open' ? 'مفتوح' : 'مغلق'"></span>
-                                                </div>
-                                                <div class="d-flex justify-content-between mb-3">
-                                                    <span class="text-muted">آخر معاملة:</span>
-                                                    <small x-text="drawer.lastTransaction || '—'"></small>
-                                                </div>
+                                                <h2 class="text-primary fw-bold mb-3" x-text="drawer.drawer.toFixed(2) + ' ' + settings.currency_symbol"></h2>
                                                 <div class="d-flex gap-2">
-                                                    <button class="btn btn-outline-success btn-sm flex-grow-1" @click="toggleDrawerStatus(idx)">
-                                                        <i class="fas" :class="drawer.status === 'Open' ? 'fa-lock' : 'fa-lock-open'"></i> تغيير
-                                                    </button>
                                                     <button class="btn btn-outline-info btn-sm flex-grow-1" data-bs-toggle="modal" data-bs-target="#transferModal" @click="selectedSourceDrawer = idx">
                                                         <i class="fas fa-exchange-alt"></i> تحويل
+                                                    </button>
+                                                    <button class="btn btn-outline-primary btn-sm flex-grow-1" @click="openEditCashboxModal(drawer)">
+                                                        <i class="fas fa-edit"></i> تعديل
+                                                    </button>
+                                                    <button class="btn btn-outline-danger btn-sm flex-grow-1" @click="deleteCashDrawer(drawer.id)">
+                                                        <i class="fas fa-trash-alt"></i> حذف
                                                     </button>
                                                 </div>
                                             </div>
@@ -649,14 +890,95 @@
 
                         <!-- Settings Page -->
                         <div x-show="currentPage === 'settings'">
-                            <div class="modern-card mx-auto" style="max-width: 700px;">
+                            <div class="modern-card mx-auto" style="max-width: 800px;">
                                 <div class="card-body p-4">
                                     <h4 class="fw-bold mb-4"><i class="fas fa-sliders-h me-2 text-primary"></i>إعدادات النظام</h4>
-                                    <div class="mb-3"><label class="form-label fw-semibold">اسم المتجر</label><input type="text" class="form-control rounded-3" x-model="storeName"></div>
-                                    <div class="mb-3"><label class="form-label fw-semibold">رمز العملة</label><input type="text" class="form-control rounded-3" x-model="currencySymbol" maxlength="5"></div>
-                                    <div class="mb-3"><label class="form-label fw-semibold">نص رأس الإيصال</label><textarea class="form-control rounded-3" rows="3" x-model="receiptHeader"></textarea></div>
-                                    <div class="mb-4 form-check form-switch"><input class="form-check-input" type="checkbox" x-model="darkModeEnabled" @change="toggleDarkMode()"><label class="form-check-label fw-semibold">الوضع الليلي</label></div>
-                                    <button class="btn btn-primary w-100 py-2 rounded-3" @click="saveSettings()"><i class="fas fa-save me-2"></i>حفظ الإعدادات</button>
+
+                                    <!-- Store Information -->
+                                    <div class="mb-4">
+                                        <h5 class="fw-semibold mb-3"><i class="fas fa-store me-2 text-primary"></i>معلومات المتجر</h5>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">اسم المتجر</label>
+                                                <input type="text" class="form-control rounded-3" x-model="settings.store_name">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">هاتف المتجر</label>
+                                                <input type="text" class="form-control rounded-3" x-model="settings.store_phone">
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label fw-semibold">عنوان المتجر</label>
+                                                <input type="text" class="form-control rounded-3" x-model="settings.store_address">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Tax Information (for Proforma Invoice) -->
+                                    <div class="mb-4">
+                                        <h5 class="fw-semibold mb-3"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>البيانات الجبائية</h5>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">N° RC (السجل التجاري)</label>
+                                                <input type="text" class="form-control rounded-3" x-model="settings.rc">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">NIF (رقم التعريف الجبائي)</label>
+                                                <input type="text" class="form-control rounded-3" x-model="settings.nif">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">NIS (رقم التعريف الضريبي)</label>
+                                                <input type="text" class="form-control rounded-3" x-model="settings.nis">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">ART IMP (المادة الضريبية)</label>
+                                                <input type="text" class="form-control rounded-3" x-model="settings.art_imp">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Invoice Appearance -->
+                                    <div class="mb-4">
+                                        <h5 class="fw-semibold mb-3"><i class="fas fa-receipt me-2 text-primary"></i>إعدادات الفاتورة</h5>
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <label class="form-label fw-semibold">نص رأس الإيصال</label>
+                                                <textarea class="form-control rounded-3" rows="2" x-model="settings.receipt_header"></textarea>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label fw-semibold">نص تذييل الإيصال</label>
+                                                <textarea class="form-control rounded-3" rows="2" x-model="settings.receipt_footer"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- System Preferences -->
+                                    <div class="mb-4">
+                                        <h5 class="fw-semibold mb-3"><i class="fas fa-cog me-2 text-primary"></i>تفضيلات النظام</h5>
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">رمز العملة</label>
+                                                <input type="text" class="form-control rounded-3" x-model="settings.currency_symbol" maxlength="5">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">حد المخزون المنخفض (تنبيه)</label>
+                                                <input type="number" class="form-control rounded-3" x-model="settings.low_stock_threshold">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">الزبون الافتراضي</label>
+                                                <input type="text" class="form-control rounded-3" x-model="settings.default_customer">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check form-switch mt-4">
+                                                    <input class="form-check-input" type="checkbox" x-model="darkModeEnabled" @change="toggleDarkMode()">
+                                                    <label class="form-check-label fw-semibold">الوضع الليلي</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button class="btn btn-primary w-100 py-2 rounded-3" @click="saveSettings()">
+                                        <i class="fas fa-save me-2"></i>حفظ جميع الإعدادات
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -667,24 +989,253 @@
     </div>
 
     <!-- Add Product Modal -->
+
     <div class="modal fade" id="addProductModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content rounded-4">
-                <div class="modal-header border-0"><h5 class="modal-title fw-bold"><i class="fas fa-box-open me-2 text-primary"></i>إضافة منتج جديد</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-box-open me-2 text-primary"></i>إضافة منتج جديد</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
                 <div class="modal-body">
                     <div class="row g-3">
-                        <div class="col-12"><input type="text" class="form-control rounded-3" placeholder="اسم المنتج" x-model="newProduct.title"></div>
-                        <div class="col-6"><input type="number" class="form-control rounded-3" placeholder="السعر" x-model="newProduct.price"></div>
-                        <div class="col-6"><input type="number" class="form-control rounded-3" placeholder="الكمية" x-model="newProduct.quantity"></div>
-                        <div class="col-12"><input type="text" class="form-control rounded-3" placeholder="الباركود" x-model="newProduct.barcode"></div>
-                        <div class="col-12"><select class="form-select rounded-3" x-model="newProduct.category_id"><option value="">اختر التصنيف</option><template x-for="cat in categoriesList" :key="cat.id"><option :value="cat.id" x-text="cat.title"></option></template></select></div>
+                        <!-- Basic Info -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">اسم المنتج *</label>
+                            <input type="text" class="form-control rounded-3" placeholder="اسم المنتج" x-model="newProduct.title">
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">الباركود *</label>
+                            <input type="text" class="form-control rounded-3" placeholder="الباركود" x-model="newProduct.barcode">
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">الكمية *</label>
+                            <input type="number" class="form-control rounded-3" placeholder="الكمية" x-model="newProduct.quantity">
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">السعر *</label>
+                            <input type="number" step="0.01" class="form-control rounded-3" placeholder="السعر" x-model="newProduct.price">
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">عدد القطع في الصندوق</label>
+                            <input type="number" class="form-control rounded-3" placeholder="عدد القطع في الصندوق" x-model="newProduct.item_per_box">
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">سعر الصندوق</label>
+                            <input type="number" step="0.01" class="form-control rounded-3" placeholder="سعر الصندوق" x-model="newProduct.box_price">
+                        </div>
+                        
+                        <!-- Dropdowns -->
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">التصنيف</label>
+                            <select class="form-select rounded-3" x-model="newProduct.category_id">
+                                <option value="">اختر التصنيف</option>
+                                <template x-for="cat in categoriesList" :key="cat.id">
+                                    <option :value="cat.id" x-text="cat.title"></option>
+                                </template>
+                            </select>
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">المورد</label>
+                            <select class="form-select rounded-3" x-model="newProduct.supplier_id">
+                                <option value="">اختر المورد</option>
+                                <template x-for="sup in suppliersListData" :key="sup.id">
+                                    <option :value="sup.id" x-text="sup.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">الخزنة</label>
+                            <select class="form-select rounded-3" x-model="newProduct.cashbox_id">
+                                <option value="">اختر الخزنة</option>
+                                <template x-for="drawer in cashDrawers" :key="drawer.id || drawer.title">
+                                    <option :value="drawer.id || $index" x-text="drawer.title"></option>
+                                </template>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0"><button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-primary rounded-3" @click="addInventoryProduct()" data-bs-dismiss="modal"><i class="fas fa-save me-2"></i>حفظ</button></div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button>
+                    <button class="btn btn-primary rounded-3" @click="addInventoryProduct()" data-bs-dismiss="modal">
+                        <i class="fas fa-save me-2"></i>حفظ المنتج
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="messageModal" class="vanilla-modal" style="display: none;">
+        <div class="vanilla-modal-overlay"></div>
+        <div class="vanilla-modal-container">
+            <div class="vanilla-modal-header">
+                <h5 class="vanilla-modal-title">إشعار</h5>
+                <button type="button" class="vanilla-modal-close" data-modal-close>×</button>
+            </div>
+            <div class="vanilla-modal-body" id="messageModalBody"></div>
+            <div class="vanilla-modal-footer">
+                <button type="button" class="btn btn-primary" id="messageModalOk">موافق</button>
             </div>
         </div>
     </div>
 
+    <div id="questionModal" class="vanilla-modal" style="display: none;">
+        <div class="vanilla-modal-overlay"></div>
+        <div class="vanilla-modal-container">
+            <div class="vanilla-modal-header">
+                <h5 class="vanilla-modal-title">تأكيد</h5>
+                <button type="button" class="vanilla-modal-close" data-modal-close>×</button>
+            </div>
+            <div class="vanilla-modal-body" id="questionModalBody"></div>
+            <div class="vanilla-modal-footer">
+                <button type="button" class="btn btn-secondary" id="questionModalCancel">إلغاء</button>
+                <button type="button" class="btn btn-primary" id="questionModalOk">نعم</button>
+            </div>
+        </div>
+    </div>
+    <!-- Edit Product Modal -->
+    <div class="modal fade" id="editProductModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2 text-primary"></i>تعديل المنتج</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- Basic Info -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">اسم المنتج *</label>
+                            <input type="text" class="form-control rounded-3" placeholder="اسم المنتج" x-model="editingProduct.title">
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">الباركود *</label>
+                            <input type="text" class="form-control rounded-3" placeholder="الباركود" x-model="editingProduct.barcode">
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">الكمية *</label>
+                            <input type="number" class="form-control rounded-3" placeholder="الكمية" x-model="editingProduct.quantity">
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">السعر *</label>
+                            <input type="number" step="0.01" class="form-control rounded-3" placeholder="السعر" x-model="editingProduct.price">
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">عدد القطع في الصندوق</label>
+                            <input type="number" class="form-control rounded-3" placeholder="عدد القطع في الصندوق" x-model="editingProduct.item_per_box">
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">سعر الصندوق</label>
+                            <input type="number" step="0.01" class="form-control rounded-3" placeholder="سعر الصندوق" x-model="editingProduct.box_price">
+                        </div>
+                        
+                        <!-- Dropdowns -->
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">التصنيف</label>
+                            <select class="form-select rounded-3" x-model="editingProduct.category_id">
+                                <option value="">اختر التصنيف</option>
+                                <template x-for="cat in categoriesList" :key="cat.id">
+                                    <option :value="cat.id" x-text="cat.title"></option>
+                                </template>
+                            </select>
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">المورد</label>
+                            <select class="form-select rounded-3" x-model="editingProduct.supplier_id">
+                                <option value="">اختر المورد</option>
+                                <template x-for="sup in suppliersListData" :key="sup.id">
+                                    <option :value="sup.id" x-text="sup.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">الخزنة</label>
+                            <select class="form-select rounded-3" x-model="editingProduct.cashbox_id">
+                                <option value="">اختر الخزنة</option>
+                                <template x-for="drawer in cashDrawers" :key="drawer.id || drawer.title">
+                                    <option :value="drawer.id || $index" x-text="drawer.title"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button>
+                    <button class="btn btn-primary rounded-3" @click="updateProduct()" data-bs-dismiss="modal">
+                        <i class="fas fa-save me-2"></i>تحديث المنتج
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Add Cashbox Modal -->
+    <div class="modal fade" id="addCashboxModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2 text-primary"></i>إضافة خزنة جديدة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">اسم الخزنة</label>
+                        <input type="text" class="form-control rounded-3" placeholder="مثال: الخزنة الرئيسية" x-model="newCashbox.title">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الرصيد الافتتاحي</label>
+                        <input type="number" step="0.01" class="form-control rounded-3" placeholder="0.00" x-model="newCashbox.drawer">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button>
+                    <button class="btn btn-primary rounded-3" @click="addCashDrawer()" data-bs-dismiss="modal">
+                        <i class="fas fa-save me-2"></i>حفظ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Cashbox Modal -->
+    <div class="modal fade" id="editCashboxModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2 text-primary"></i>تعديل الخزنة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">اسم الخزنة</label>
+                        <input type="text" class="form-control rounded-3" x-model="editingCashbox.title">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الرصيد الحالي</label>
+                        <input type="number" step="0.01" class="form-control rounded-3" x-model="editingCashbox.drawer">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button>
+                    <button class="btn btn-primary rounded-3" @click="updateCashDrawer()" data-bs-dismiss="modal">
+                        <i class="fas fa-save me-2"></i>تحديث
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Add Customer Modal -->
     <div class="modal fade" id="addCustomerModal" tabindex="-1">
         <div class="modal-dialog">
@@ -708,8 +1259,7 @@
                 <div class="modal-body">
                     <input class="form-control mb-3 rounded-3" placeholder="اسم الشركة" x-model="newSupplier.name">
                     <input class="form-control mb-3 rounded-3" placeholder="رقم الهاتف" x-model="newSupplier.phone">
-                    <input class="form-control mb-3 rounded-3" placeholder="البريد الإلكتروني" x-model="newSupplier.email">
-                    <input class="form-control rounded-3" placeholder="الرصيد المستحق" x-model="newSupplier.balance" type="number">
+                    <input class="form-control mb-3 rounded-3" placeholder="البريد الإلكتروني" x-model="newSupplier.address">
                 </div>
                 <div class="modal-footer border-0"><button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-primary rounded-3" @click="addSupplier()" data-bs-dismiss="modal">إضافة</button></div>
             </div>
@@ -735,7 +1285,7 @@
             <div class="modal-content rounded-4">
                 <div class="modal-header border-0"><h5 class="modal-title fw-bold"><i class="fas fa-exchange-alt me-2 text-primary"></i>تحويل الأموال</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
-                    <select class="form-select mb-3 rounded-3" x-model="transferTargetDrawer"><option disabled>اختر الخزنة المستهدفة</option><template x-for="(dr, idx) in cashDrawers" :key="idx"><option :value="idx" x-text="dr.name" :disabled="idx === selectedSourceDrawer"></option></template></select>
+                    <select class="form-select mb-3 rounded-3" x-model="transferTargetDrawer"><option disabled>اختر الخزنة المستهدفة</option><template x-for="(dr, idx) in cashDrawers" :key="idx"><option :value="idx" x-text="dr.title" :disabled="idx === selectedSourceDrawer"></option></template></select>
                     <input type="number" class="form-control rounded-3" placeholder="المبلغ" x-model="transferAmount">
                 </div>
                 <div class="modal-footer border-0"><button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-primary rounded-3" @click="executeTransfer()" data-bs-dismiss="modal"><i class="fas fa-arrow-left me-2"></i>تحويل</button></div>
@@ -745,15 +1295,81 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        const message = (text, title = "إشعار") => {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('messageModal');
+                const bodyEl = document.getElementById('messageModalBody');
+                const okBtn = document.getElementById('messageModalOk');
+                const closeBtn = modal.querySelector('[data-modal-close]');
+                
+                bodyEl.innerText = text;
+                modal.querySelector('.vanilla-modal-title').innerText = title;
+                modal.style.display = 'flex';
+                
+                const closeModal = () => {
+                    modal.style.display = 'none';
+                    okBtn.removeEventListener('click', closeModal);
+                    closeBtn?.removeEventListener('click', closeModal);
+                    document.removeEventListener('keydown', escHandler);
+                    resolve();
+                };
+                
+                const escHandler = (e) => {
+                    if (e.key === 'Escape') closeModal();
+                };
+                
+                okBtn.addEventListener('click', closeModal);
+                if (closeBtn) closeBtn.addEventListener('click', closeModal);
+                document.addEventListener('keydown', escHandler);
+            });
+        };
+
+        const question = (text, title = "تأكيد", questionText = "نعم", cancelText = "إلغاء") => {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('questionModal');
+                const bodyEl = document.getElementById('questionModalBody');
+                const okBtn = document.getElementById('questionModalOk');
+                const cancelBtn = document.getElementById('questionModalCancel');
+                const closeBtn = modal.querySelector('[data-modal-close]');
+                
+                bodyEl.innerText = text;
+                modal.querySelector('.vanilla-modal-title').innerText = title;
+                okBtn.innerText = questionText;
+                cancelBtn.innerText = cancelText;
+                modal.style.display = 'flex';
+                
+                const closeModal = (result) => {
+                    modal.style.display = 'none';
+                    okBtn.removeEventListener('click', onOk);
+                    cancelBtn.removeEventListener('click', onCancel);
+                    closeBtn?.removeEventListener('click', onCancel);
+                    document.removeEventListener('keydown', escHandler);
+                    resolve(result);
+                };
+                
+                const onOk = () => closeModal(true);
+                const onCancel = () => closeModal(false);
+                const escHandler = (e) => {
+                    if (e.key === 'Escape') closeModal(false);
+                };
+                
+                okBtn.addEventListener('click', onOk);
+                cancelBtn.addEventListener('click', onCancel);
+                if (closeBtn) closeBtn.addEventListener('click', onCancel);
+                document.addEventListener('keydown', escHandler);
+            });
+        };
+
+        window.message = message;
+        window.question = question;
         function app() {
             return {
                 // App State
                 currentPage: 'home',
                 darkModeEnabled: false,
-                storeName: 'متجر CashboxPro',
-                currencySymbol: 'د.ج',
                 receiptHeader: 'شكراً لتسوقكم معنا',
                 isLoading: true,
+                posSelectedCategoryId: null,
                 
                 // Data
                 productList: [],
@@ -763,6 +1379,25 @@
                 salesList: [],
                 filteredSales: [],
                 salesSearch: '',
+                newCashbox: { title: '', drawer: 0 },
+                editingCashbox: { id: null, title: '', drawer: 0 },
+
+                settings: {
+                    store_name: '',
+                    store_phone: '',
+                    store_address: '',
+                    rc: '',
+                    nif: '',
+                    nis: '',
+                    art_imp: '',
+                    receipt_header: '',
+                    receipt_footer: '',
+                    currency_symbol: '',
+                    low_stock_threshold: 10,
+                    default_customer: '',
+                    dark_mode: false
+                },
+                darkModeEnabled: false,
                 
                 // Cart
                 cart: [],
@@ -778,8 +1413,40 @@
                 invSortBy: '',
                 invFilterType: '',
                 displayedInventory: [],
-                newProduct: { title: '', price: 0, quantity: 0, barcode: '', category_id: null },
+                newProduct: { 
+                    title: '', 
+                    barcode: '', 
+                    quantity: 0, 
+                    price: 0, 
+                    category_id: null,
+                    supplier_id: null,
+                    item_per_box: null,
+                    box_price: null,
+                    cashbox_id: null
+                },
                 newCategoryTitle: '',
+                // Editing Product
+                editingProduct: { 
+                    id: null,
+                    title: '', 
+                    barcode: '', 
+                    quantity: 0, 
+                    price: 0, 
+                    category_id: null,
+                    supplier_id: null,
+                    item_per_box: null,
+                    box_price: null,
+                    cashbox_id: null
+                },
+
+                // Sales Filters
+                salesPeriod: 'all',
+                selectedDate: new Date().toISOString().split('T')[0],
+                selectedMonth: new Date().toISOString().slice(0, 7),
+                selectedYear: new Date().getFullYear(),
+                periodTotalRevenue: 0,
+                periodSalesCount: 0,
+                periodItemsCount: 0,
                 
                 // Customers & Suppliers
                 customersList: [],
@@ -789,7 +1456,8 @@
                 filteredCustomers: [],
                 filteredSuppliers: [],
                 newCustomer: { name: '', phone: '', debt: 0},
-                newSupplier: { name: '', phone: '', email: '', balance: 0 },
+                newSupplier: { name: '', phone: '', address: ''},
+                selectedCustomer: null,
                 
                 // Cash Drawers
                 cashDrawers: [],
@@ -798,12 +1466,21 @@
                 transferAmount: 0,
                 
                 async init() {
+                    const saved = localStorage.getItem('cashboxSettings');
+                    if (saved) {
+                        try {
+                            const parsed = JSON.parse(saved);
+                            this.settings = { ...this.settings, ...parsed };
+                            this.darkModeEnabled = parsed.darkMode || false;
+                        } catch(e) {}
+                    }
                     await this.loadProducts();
                     await this.loadCategories();
                     await this.loadSuppliers();
                     await this.loadCustomers();
                     await this.loadCashDrawers();
                     await this.loadSales();
+                    await this.loadSettings();
                     
                     this.inventoryList = [...this.productList];
                     this.filteredProducts = [...this.productList];
@@ -819,7 +1496,19 @@
                     const titles = { 'home': 'نقطة البيع', 'sales': 'المبيعات', 'inventory': 'إدارة المخزون', 'customers': 'إدارة الزبائن', 'suppliers': 'إدارة الموردين', 'categories': 'إدارة التصنيفات', 'cashbox': 'الخزائن', 'settings': 'الإعدادات' };
                     return titles[this.currentPage] || 'الرئيسية';
                 },
-                
+
+                async loadSettings() {
+                    try {
+                        const res = await fetch('/api/settings');
+                        const data = await res.json();
+                        this.settings = data;
+                        this.darkModeEnabled = data.dark_mode;
+
+                        this.toggleDarkMode(); // apply dark mode class
+                    } catch(e) {
+                        console.error('Failed to load settings', e);
+                    }
+                },
                 async loadProducts() {
                     try {
                         const res = await fetch('/api/products');
@@ -864,7 +1553,15 @@
                 async loadCashDrawers() {
                     try {
                         const res = await fetch('/api/cashboxes');
-                        this.cashDrawers = await res.json();
+                        const data = await res.json();
+
+                        this.cashDrawers = data.map(drawer => ({
+                            id: drawer.id,
+                            title: drawer.title,
+                            drawer: drawer.drawer,
+                            status: drawer.status || 'Open',     
+                            lastTransaction: drawer.lastTransaction || null
+                        }));
                     } catch (e) { 
                         console.error('Failed to load cashboxes', e);
                         this.cashDrawers = [];
@@ -875,24 +1572,130 @@
                     try {
                         const res = await fetch('/api/sales');
                         const data = await res.json();
-                        this.salesList = data;
-                        this.filteredSales = data;
+                        // Calculate wholesale totals based on product box prices
+                        this.salesList = data.map(sale => {
+                            const wholesaleTotal = (sale.box_price && sale.item_per_box) 
+                                ? (sale.box_price / sale.item_per_box) * sale.quantity 
+                                : 0;
+                            return {
+                                ...sale,
+                                wholesale_total: wholesaleTotal,
+                                total: (sale.price || 0) * sale.quantity
+                            };
+                        });
+                        this.filterSalesByPeriod();
                     } catch (e) {
                         console.error('Failed to load sales', e);
                         this.salesList = [];
                         this.filteredSales = [];
                     }
                 },
+                openEditCashboxModal(drawer) {
+                    this.editingCashbox = {
+                        id: drawer.id,
+                        title: drawer.title,
+                        drawer: drawer.drawer
+                    };
+                    const modalEl = document.getElementById('editCashboxModal');
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                },
+            
+                async generateProforma() {
+                    try {
+                        await fetch('/api/print/proforma', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ items: this.cart , customer: this.selectedCustomer})
+                        });
+                    } catch (e) { console.error('print failed', e); }
 
-                filterSales() {
-                    if (!this.salesSearch.trim()) {
-                        this.filteredSales = [...this.salesList];
-                    } else {
-                        this.filteredSales = this.salesList.filter(s => 
-                            (s.product_title && s.product_title.toLowerCase().includes(this.salesSearch.toLowerCase())) ||
-                            (s.product_barcode && s.product_barcode.includes(this.salesSearch))
-                        );
+                    this.clearCart();
+                    await this.loadProducts();
+                    this.inventoryList = [...this.productList];
+                    this.filteredProducts = [...this.productList];
+                    this.applyInventoryFilters();
+                },
+
+                async addCashDrawer() {
+                    if (!this.newCashbox.title) {
+                        message('الرجاء إدخال اسم الخزنة');
+                        return;
                     }
+                    if (this.newCashbox.drawer < 0) {
+                        message('الرصيد لا يمكن أن يكون سالباً');
+                        return;
+                    }
+                    try {
+                        const res = await fetch('/api/cashboxes/add', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title: this.newCashbox.title,
+                                drawer: Number(this.newCashbox.drawer)
+                            })
+                        });
+                        if (res.ok) {
+                            await this.loadCashDrawers();
+                            this.newCashbox = { title: '', drawer: 0 };
+                            message('تم إضافة الخزنة بنجاح');
+                        } else {
+                            message('فشل إضافة الخزنة');
+                        }
+                    } catch (e) {
+                        console.error('Add cashbox error', e);
+                        message('حدث خطأ في الاتصال بالخادم');
+                    }
+                },
+
+                async updateCashDrawer() {
+                    if (!this.editingCashbox.title) {
+                        message('الرجاء إدخال اسم الخزنة');
+                        return;
+                    }
+                    if (this.editingCashbox.drawer < 0) {
+                        message('الرصيد لا يمكن أن يكون سالباً');
+                        return;
+                    }
+                    try {
+                        const res = await fetch(`/api/cashboxes/${this.editingCashbox.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title: this.editingCashbox.title,
+                                drawer: Number(this.editingCashbox.drawer)
+                            })
+                        });
+                        console.log(this.editingCashbox);
+                        if (res.ok) {
+                            await this.loadCashDrawers();
+                            message('تم تحديث الخزنة بنجاح');
+                        } else {
+                            message('فشل تحديث الخزنة');
+                        }
+                    } catch (e) {
+                        console.error('Update cashbox error', e);
+                        message('حدث خطأ في الاتصال بالخادم');
+                    }
+                },
+
+                async deleteCashDrawer(id) {
+                    if (!question('هل أنت متأكد من حذف هذه الخزنة؟')) return;
+                    try {
+                        const res = await fetch(`/api/cashboxes/remove/${id}`, { method: 'DELETE' });
+                        if (res.ok) {
+                            await this.loadCashDrawers();
+                            message('تم حذف الخزنة بنجاح');
+                        } else {
+                            message('فشل حذف الخزنة');
+                        }
+                    } catch (e) {
+                        console.error('Delete cashbox error', e);
+                        message('حدث خطأ في الاتصال بالخادم');
+                    }
+                },
+                filterSales() {
+                    this.filterSalesByPeriod(); 
                 },
 
                 get totalSales() {
@@ -914,7 +1717,7 @@
                 formatDate(dateString) {
                     if (!dateString) return '—';
                     const date = new Date(dateString);
-                    return date.toLocaleDateString('ar-EG', { 
+                    return date.toLocaleDateString('fr-FR', { 
                         year: 'numeric', 
                         month: 'short', 
                         day: 'numeric',
@@ -922,13 +1725,93 @@
                         minute: '2-digit'
                     });
                 },
+                filterSalesByPeriod() {
+                    let filtered = [...this.salesList];
+                    const now = new Date();
+                    
+                    if (this.salesPeriod === 'daily' && this.selectedDate) {
+                        const targetDate = new Date(this.selectedDate).toDateString();
+                        filtered = filtered.filter(s => new Date(s.date).toDateString() === targetDate);
+                    } 
+                    else if (this.salesPeriod === 'weekly') {
+                        const startOfWeek = new Date(now);
+                        startOfWeek.setDate(now.getDate() - now.getDay());
+                        const endOfWeek = new Date(startOfWeek);
+                        endOfWeek.setDate(startOfWeek.getDate() + 6);
+                        filtered = filtered.filter(s => {
+                            const saleDate = new Date(s.date);
+                            return saleDate >= startOfWeek && saleDate <= endOfWeek;
+                        });
+                    }
+                    else if (this.salesPeriod === 'monthly' && this.selectedMonth) {
+                        const [year, month] = this.selectedMonth.split('-');
+                        filtered = filtered.filter(s => {
+                            const saleDate = new Date(s.date);
+                            return saleDate.getFullYear() === parseInt(year) && 
+                                saleDate.getMonth() === parseInt(month) - 1;
+                        });
+                    }
+                    else if (this.salesPeriod === 'yearly' && this.selectedYear) {
+                        filtered = filtered.filter(s => {
+                            const saleDate = new Date(s.date);
+                            return saleDate.getFullYear() === parseInt(this.selectedYear);
+                        });
+                    }
+                    
+                    // Apply search filter
+                    if (this.salesSearch.trim()) {
+                        filtered = filtered.filter(s => 
+                            (s.product_title && s.product_title.toLowerCase().includes(this.salesSearch.toLowerCase())) ||
+                            (s.product_barcode && s.product_barcode.includes(this.salesSearch))
+                        );
+                    }
+                    
+                    this.filteredSales = filtered;
+                    
+                    // Calculate period statistics
+                    this.periodTotalRevenue = filtered.reduce((sum, s) => sum + (s.total || 0), 0);
+                    this.periodSalesCount = filtered.length;
+                    this.periodItemsCount = filtered.reduce((sum, s) => sum + s.quantity, 0);
+                },
+
+                // Enhanced sales statistics
+                get totalRevenue() {
+                    return this.salesList.reduce((sum, s) => sum + (s.total || 0), 0);
+                },
+
+                get wholesaleRevenue() {
+                    return this.salesList.reduce((sum, s) => sum + (s.wholesale_total || 0), 0);
+                },
+
+                get estimatedProfit() {
+                    return this.totalRevenue - this.wholesaleRevenue;
+                },
+
+                get averageTransactionValue() {
+                    return this.salesList.length > 0 ? this.totalRevenue / this.salesList.length : 0;
+                },
+
+                get topProduct() {
+                    const productSales = {};
+                    this.salesList.forEach(sale => {
+                        if (sale.product_title) {
+                            if (!productSales[sale.product_title]) {
+                                productSales[sale.product_title] = { name: sale.product_title, quantity: 0 };
+                            }
+                            productSales[sale.product_title].quantity += sale.quantity;
+                        }
+                    });
+                    const top = Object.values(productSales).sort((a, b) => b.quantity - a.quantity)[0];
+                    return top || { name: '—', quantity: 0 };
+                },
 
                 exportSalesReport() {
-                    let csv = "التاريخ,المنتج,الباركود,الكمية,السعر,الإجمالي\n";
+                    let csv = "التاريخ,المنتج,الباركود,الكمية,سعر التجزئة,سعر الجملة/قطعة,الإجمالي(تجزئة),الإجمالي(جملة),الفرق\n";
                     this.filteredSales.forEach(sale => {
-                        csv += `${formatDate(sale.date)},${sale.product_title || 'محذوف'},${sale.product_barcode || '—'},${sale.quantity},${sale.price || 0},${((sale.price || 0) * sale.quantity)}\n`;
+                        const wholesalePricePerUnit = (sale.box_price && sale.item_per_box) ? (sale.box_price / sale.item_per_box) : 0;
+                        csv += `${this.formatDate(sale.date)},${sale.product_title || 'محذوف'},${sale.product_barcode || '—'},${sale.quantity},${sale.price || 0},${wholesalePricePerUnit.toFixed(2)},${(sale.price || 0) * sale.quantity},${sale.wholesale_total || 0},${((sale.price || 0) * sale.quantity) - (sale.wholesale_total || 0)}\n`;
                     });
-                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -939,8 +1822,24 @@
 
                 
                 filterProducts() {
-                    if (!this.productSearchQuery.trim()) this.filteredProducts = [...this.productList];
-                    else this.filteredProducts = this.fuseProducts.search(this.productSearchQuery).map(r => r.item);
+                    let filtered = [...this.productList];
+                    
+                    // Search filter
+                    if (this.productSearchQuery.trim()) {
+                        filtered = this.fuseProducts.search(this.productSearchQuery).map(r => r.item);
+                    }
+                    
+                    this.filteredProducts = filtered;
+                },
+
+                filterByCategory() {
+                    let filtered = [...this.productList];
+                    
+                    if (this.posSelectedCategoryId) {
+                        this.filteredProducts = filtered.filter(p => p.category_id == this.posSelectedCategoryId);
+                    } else {
+                        this.filteredProducts = filtered
+                    }
                 },
                 
                 handleBarcode() {
@@ -951,18 +1850,118 @@
                     }
                     this.barcodeQuery = '';
                 },
-                
+                // Open edit modal with product data
+                openEditModal(product) {
+                    this.editingProduct = {
+                        id: product.id,
+                        title: product.title,
+                        barcode: product.barcode,
+                        quantity: product.quantity,
+                        price: product.price,
+                        category_id: product.category_id || null,
+                        supplier_id: product.supplier_id || null,
+                        item_per_box: product.item_per_box || null,
+                        box_price: product.box_price || null,
+                        cashbox_id: product.cashbox_id || null
+                    };
+                    
+                    // Show the modal using Bootstrap's API
+                    const modalEl = document.getElementById('editProductModal');
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                },
+
+                // Update product
+                async updateProduct() {
+                    if (!this.editingProduct.title || !this.editingProduct.barcode) {
+                        message('الرجاء ملء اسم المنتج والباركود (حقول إلزامية)');
+                        return;
+                    }
+                    
+                    if (this.editingProduct.quantity <= 0) {
+                        message('الرجاء إدخال كمية صحيحة');
+                        return;
+                    }
+                    
+                    if (this.editingProduct.price <= 0) {
+                        message('الرجاء إدخال سعر صحيح');
+                        return;
+                    }
+                    
+                    try {
+                        const res = await fetch(`/api/products/${this.editingProduct.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title: this.editingProduct.title,
+                                barcode: this.editingProduct.barcode,
+                                quantity: Number(this.editingProduct.quantity),
+                                price: Number(this.editingProduct.price),
+                                category_id: this.editingProduct.category_id || null,
+                                supplier_id: this.editingProduct.supplier_id || null,
+                                item_per_box: this.editingProduct.item_per_box ? Number(this.editingProduct.item_per_box) : null,
+                                box_price: this.editingProduct.box_price ? Number(this.editingProduct.box_price) : null,
+                                cashbox_id: this.editingProduct.cashbox_id || null
+                            })
+                        });
+                        
+                        if (res.ok) {
+                            await this.loadProducts();
+                            this.inventoryList = [...this.productList];
+                            this.filteredProducts = [...this.productList];
+                            this.applyInventoryFilters();
+                            
+                            // Reset editing product
+                            this.editingProduct = { 
+                                id: null,
+                                title: '', 
+                                barcode: '', 
+                                quantity: 0, 
+                                price: 0, 
+                                category_id: null,
+                                supplier_id: null,
+                                item_per_box: null,
+                                box_price: null,
+                                cashbox_id: null
+                            };
+                            
+                            message('تم تحديث المنتج بنجاح!');
+                        } else {
+                            const error = await res.json();
+                            message('حدث خطأ: ' + (error.message || 'فشل تحديث المنتج'));
+                        }
+                    } catch (e) { 
+                        console.error('Failed to update product', e);
+                        message('حدث خطأ في الاتصال بالخادم');
+                    }
+                },
                 addToCart(prod) {
                     let existing = this.cart.find(i => i.id === prod.id);
-                    if (existing) existing.quantity++;
-                    else this.cart.push({ ...prod, quantity: 1 });
+                    if (prod.quantity > 0)
+                    {
+                        if (existing)
+                        {
+                            if (existing.quantity < prod.quantity) {
+                                existing.quantity++;
+                            }
+                        } else {
+                            this.cart.push({ ...prod, quantity: 1 });
+                        }
+                    }
                     this.recalcCartTotal();
+                    return existing.quantity;
                 },
                 
                 updateCartQty(item, delta) {
+                    prod = this.productList.find(i => i.id === item.id);
                     let newQty = item.quantity + delta;
-                    if (newQty <= 0) this.removeFromCart(this.cart.indexOf(item));
-                    else { item.quantity = newQty; this.recalcCartTotal(); }
+                    if (newQty <= 0) {
+                        this.removeFromCart(this.cart.indexOf(item))
+                    } else if (newQty > prod.quantity) {
+                        newQty = product.quantity
+                    } else {
+                        item.quantity = newQty; this.recalcCartTotal();
+                    }
                 },
                 
                 removeFromCart(idx) { this.cart.splice(idx, 1); this.recalcCartTotal(); },
@@ -974,7 +1973,7 @@
                         await fetch('/api/print', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ items: this.cart })
+                            body: JSON.stringify({ items: this.cart , customer: this.selectedCustomer})
                         });
                     } catch (e) { console.error('print failed', e); }
 
@@ -995,14 +1994,27 @@
                             });
                         } catch (e) { console.error('Sale failed', e); }
                     }
-                    alert('تم تأكيد الطلب بنجاح!');
+                    message('تم تأكيد الطلب بنجاح!');
                     this.clearCart();
                     await this.loadProducts();
                     this.inventoryList = [...this.productList];
                     this.filteredProducts = [...this.productList];
                     this.applyInventoryFilters();
                 },
-                
+
+                async customerDebt() {
+                    await fetch('api/customers/', {
+                        method: "PUT",
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 'customer_id': this.selectedCustomer, 'cart': this.cart})
+                    });
+                    this.clearCart();
+                    await this.loadProducts();
+                    await this.loadCustomers();
+                    this.inventoryList = [...this.productList];
+                    this.filteredProducts = [...this.productList];
+                    this.applyInventoryFilters();
+                },
                 applyInventoryFilters() {
                     let filtered = [...this.inventoryList];
                     if (this.invSearchQuery.trim()) {
@@ -1018,11 +2030,21 @@
                 },
                 
                 get inventoryTotalValue() { return this.inventoryList.reduce((sum, p) => sum + (p.price * p.quantity), 0); },
-                
+
                 async addInventoryProduct() {
                     if (this.newProduct.title && this.newProduct.barcode) {
+                        // Validate required numeric fields
+                        if (this.newProduct.quantity <= 0) {
+                            message('الرجاء إدخال كمية صحيحة');
+                            return;
+                        }
+                        if (this.newProduct.price <= 0) {
+                            message('الرجاء إدخال سعر صحيح');
+                            return;
+                        }
+                        
                         try {
-                            const res = await fetch('/api/products', {
+                            const res = await fetch('/api/products/add', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -1030,23 +2052,53 @@
                                     barcode: this.newProduct.barcode,
                                     quantity: Number(this.newProduct.quantity),
                                     price: Number(this.newProduct.price),
-                                    category_id: this.newProduct.category_id
+                                    category_id: this.newProduct.category_id || null,
+                                    supplier_id: this.newProduct.supplier_id || null,
+                                    item_per_box: this.newProduct.item_per_box ? Number(this.newProduct.item_per_box) : null,
+                                    box_price: this.newProduct.box_price ? Number(this.newProduct.box_price) : null,
+                                    cashbox_id: this.newProduct.cashbox_id || null
                                 })
                             });
+                            
                             if (res.ok) {
                                 await this.loadProducts();
+                                await this.loadSuppliers(); // Refresh suppliers list if needed
                                 this.inventoryList = [...this.productList];
                                 this.filteredProducts = [...this.productList];
                                 this.applyInventoryFilters();
-                                this.newProduct = { title: '', price: 0, quantity: 0, barcode: '', category_id: null };
-                                alert('تم إضافة المنتج بنجاح!');
+                                
+                                // Reset form
+                                this.newProduct = { 
+                                    title: '', 
+                                    barcode: '', 
+                                    quantity: 0, 
+                                    price: 0, 
+                                    category_id: null,
+                                    supplier_id: null,
+                                    item_per_box: null,
+                                    box_price: null,
+                                    cashbox_id: null
+                                };
+                                
+                                message('تم إضافة المنتج بنجاح!');
+                                
+                                // Optional: Refresh categories and cash drawers
+                                await this.loadCategories();
+                            } else {
+                                const error = await res.json();
+                                message('حدث خطأ: ' + (error.message || 'فشل إضافة المنتج'));
                             }
-                        } catch (e) { console.error('Failed to add product', e); }
-                    } else alert('الرجاء ملء اسم المنتج والباركود');
+                        } catch (e) { 
+                            console.error('Failed to add product', e);
+                            message('حدث خطأ في الاتصال بالخادم');
+                        }
+                    } else {
+                        message('الرجاء ملء اسم المنتج والباركود (حقول إلزامية)');
+                    }
                 },
                 
                 async deleteProduct(id) {
-                    if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+                    if (question('هل أنت متأكد من حذف هذا المنتج؟')) {
                         try {
                             await fetch(`/api/products/${id}`, { method: 'DELETE' });
                             await this.loadProducts();
@@ -1060,7 +2112,7 @@
                 async addCategory() {
                     if (this.newCategoryTitle) {
                         try {
-                            const res = await fetch('/api/categories', {
+                            const res = await fetch('/api/categories/add', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ title: this.newCategoryTitle })
@@ -1068,15 +2120,19 @@
                             if (res.ok) {
                                 await this.loadCategories();
                                 this.newCategoryTitle = '';
-                                alert('تم إضافة التصنيف بنجاح!');
+                                message('تم إضافة التصنيف بنجاح!');
                             }
                         } catch (e) { console.error('Failed to add category', e); }
                     }
                 },
                 
                 async deleteCategory(id) {
-                    if (confirm('هل أنت متأكد من حذف هذا التصنيف؟')) {
-                        alert('سيتم حذف التصنيف من قاعدة البيانات');
+                    if (question('هل أنت متأكد من حذف هذا التصنيف؟')) {
+                        try {
+                            await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+                            await this.loadCategories();
+                            this.categoriesList = [...this.categoriesList];
+                        } catch (e) { console.error('Delete failed', e); }
                     }
                 },
                 
@@ -1091,7 +2147,7 @@
                 },
                 
                 async deleteCustomer(id) {
-                    if (confirm('هل أنت متأكد من حذف هذا الزبون؟')) {
+                    if (question('هل أنت متأكد من حذف هذا الزبون؟')) {
                         try {
                             await fetch(`/api/customers/delete/${id}`, { method: 'DELETE' });
                             await this.loadCustomers();
@@ -1103,7 +2159,7 @@
                 async addCustomer() {
                     if (this.newCustomer.name) {
                         try {
-                            const res = await fetch('/api/customer', {
+                            const res = await fetch('/api/customers/add', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -1123,59 +2179,98 @@
                 async addSupplier() {
                     if (this.newSupplier.name) {
                         try {
-                            const res = await fetch('/api/suppliers', {
+                            const res = await fetch('/api/suppliers/add', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     name: this.newSupplier.name,
                                     phone: this.newSupplier.phone,
-                                    email: this.newSupplier.email
+                                    address: this.newSupplier.address,
                                 })
                             });
                             if (res.ok) {
                                 await this.loadSuppliers();
-                                this.newSupplier = { name: '', phone: '', email: '', balance: 0 };
-                                alert('تم إضافة المورد بنجاح!');
+                                this.filteredSuppliers = [...this.suppliersListData]
+                                this.newSupplier = { name: '', phone: '', address: ''};
+                                message('تم إضافة المورد بنجاح!');
                             }
                         } catch (e) { console.error('Failed to add supplier', e); }
                     }
                 },
                 
                 async deleteSupplier(id) {
-                    if (confirm('هل أنت متأكد من حذف هذا المورد؟')) {
+                    if (question('هل أنت متأكد من حذف هذا المورد؟')) {
                         try {
                             await fetch(`/api/suppliers/${id}`, { method: 'DELETE' });
                             await this.loadSuppliers();
-                            alert('تم حذف المورد!');
+                            message('تم حذف المورد!');
                         } catch (e) { console.error('Delete failed', e); }
                     }
                 },
                 
                 toggleDrawerStatus(idx) { this.cashDrawers[idx].status = this.cashDrawers[idx].status === 'Open' ? 'Closed' : 'Open'; },
-                
-                executeTransfer() {
+                async executeTransfer() {
                     if (this.transferTargetDrawer !== null && this.transferAmount > 0 && this.selectedSourceDrawer !== this.transferTargetDrawer) {
                         let amount = Number(this.transferAmount);
-                        if (this.cashDrawers[this.selectedSourceDrawer].balance >= amount) {
-                            this.cashDrawers[this.selectedSourceDrawer].balance -= amount;
-                            this.cashDrawers[this.transferTargetDrawer].balance += amount;
+                        let source = this.cashDrawers[this.selectedSourceDrawer];
+                        let target = this.cashDrawers[this.transferTargetDrawer];
+                        
+                        if (source.drawer >= amount) {
+                            // Update frontend
+                            source.drawer -= amount;
+                            target.drawer += amount;
                             let now = new Date().toLocaleDateString('ar-EG');
-                            this.cashDrawers[this.selectedSourceDrawer].lastTransaction = `تحويل -${amount} ${now}`;
-                            this.cashDrawers[this.transferTargetDrawer].lastTransaction = `تحويل +${amount} ${now}`;
-                            alert('تم تحويل المبلغ بنجاح!');
-                        } else alert('الرصيد غير كافٍ في الخزنة المصدر');
-                    } else alert('بيانات التحويل غير صالحة');
+                            source.lastTransaction = `تحويل -${amount} ${now}`;
+                            target.lastTransaction = `تحويل +${amount} ${now}`;
+                            
+                            // Persist to database
+                            try {
+                                await fetch(`/api/cashboxes/${source.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ title: source.title, drawer: source.drawer })
+                                });
+                                await fetch(`/api/cashboxes/${target.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ title: target.title, drawer: target.drawer })
+                                });
+                                message('تم تحويل المبلغ بنجاح!');
+                                await this.loadCashDrawers(); // Refresh from DB
+                            } catch (e) {
+                                console.error('Transfer save failed', e);
+                                message('حدث خطأ في حفظ التحويل');
+                            }
+                        } else {
+                            message('الرصيد غير كافٍ في الخزنة المصدر');
+                        }
+                    } else {
+                        message('بيانات التحويل غير صالحة');
+                    }
                     this.transferAmount = 0;
+                },   
+                toggleDarkMode() {document.body.classList.toggle('dark-mode', this.darkModeEnabled)},
+                async saveSettings() {
+                    try {
+                        const res = await fetch('/api/settings', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ...this.settings,
+                                dark_mode: this.darkModeEnabled
+                            })
+                        });
+                        if (res.ok) {
+                            await message('تم حفظ الإعدادات بنجاح!');
+                            await this.loadSettings(); // refresh to be safe
+                        } else {
+                            await message('فشل حفظ الإعدادات');
+                        }
+                    } catch(e) {
+                        console.error(e);
+                        await message('حدث خطأ في الاتصال بالخادم');
+                    }
                 },
-                
-                toggleDarkMode() { document.body.classList.toggle('dark-mode', this.darkModeEnabled); },
-                saveSettings() {
-                    localStorage.setItem('cashboxSettings', JSON.stringify({
-                        storeName: this.storeName, currencySymbol: this.currencySymbol,
-                        receiptHeader: this.receiptHeader, darkMode: this.darkModeEnabled
-                    }));
-                    alert('تم حفظ الإعدادات بنجاح!');
-                }
             };
         }
     </script>
